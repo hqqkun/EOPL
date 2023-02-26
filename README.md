@@ -1,3 +1,3 @@
 # EOPL
 
-solutions
+My solutions of `Essentials of Programming Languages`
