@@ -21,34 +21,47 @@
     (extended-env-record var val old-env))
 )
 
+; Exercise 3-36
 (define extend-env-rec
-  (lambda (p-name b-var body old-env)
-    (extended-env-rec-record
-      p-name b-var body old-env))
+  (lambda (p-names b-vars bodys old-env)
+    (let* 
+      ( [len (length p-names)]
+        [vec (make-vector len)])
+      (let ([new-env (extend-env p-names vec old-env)])
+        (letrec 
+          ( [S  (lambda (b-vars bodys index)
+                  (if (null? b-vars)
+                    0
+                    (begin
+                      (vector-set! vec index 
+                        (proc-val (procedure (car b-vars) (car bodys) new-env)))
+                      (S (cdr b-vars) (cdr bodys) (+ index 1)))))])
+          (S b-vars bodys 0)
+          new-env))))
 )
 
-; Exercise 3-32
+; find rec proc in this vector based environment
+(define find-rec-proc
+  (lambda (p-names vec old-env search-var)
+    (letrec
+      ( [F  (lambda (p-names index)
+              (cond
+                ((null? p-names) (apply-env old-env search-var))
+                ((eqv? (car p-names) search-var) (vector-ref vec index))
+                (else (F (cdr p-names) (+ index 1)))))])
+      (F p-names 0)))
+)
 
 ; apply-env : Environment * Identifier -> Expval
 (define apply-env
   (lambda (env search-var)
     (cases environment env
       (empty-env-record () (eopl:error 'apply-env "No binding for ~s" search-var))
+      
       (extended-env-record (var val old-env)
-        (if (eqv? var search-var) 
-          val
-          (apply-env old-env search-var)))
-      (extended-env-rec-record (p-names b-vars bodys old-env)
-        (letrec
-          ; Exercise 3-22 helper function
-          ; since now p-names b-vars and bodys are all lists.
-          ( [A (lambda (p-names b-vars bodys)
-                (cond
-                  ((null? p-names) (apply-env old-env search-var))
-                  ((eqv? search-var (car p-names))
-                    (proc-val (procedure (car b-vars) (car bodys) env)))
-                  (else (A (cdr p-names) (cdr b-vars) (cdr bodys)))))])
-           (A p-names b-vars bodys)))))
+        (if (list? var)
+          (find-rec-proc var val old-env search-var)
+          (if (eqv? var search-var) val (apply-env old-env search-var))))))
 )
 
 

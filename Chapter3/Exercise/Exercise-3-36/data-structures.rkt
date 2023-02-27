@@ -55,13 +55,12 @@
 (define-datatype environment environment?
   (empty-env-record)
   (extended-env-record
-    (var symbol?)
-    (val expval?)
-    (old-env environment?))
-  (extended-env-rec-record
-    (pnames (list-of symbol?))
-    (b-vars (list-of symbol?))
-    (bodys (list-of expression?))
+    (var
+      (lambda (item)
+      (or (symbol? item) ((list-of symbol?) item))))
+    (val
+      (lambda (item)
+        (or (expval? item) (vector? item))))
     (old-env environment?))
 )
 

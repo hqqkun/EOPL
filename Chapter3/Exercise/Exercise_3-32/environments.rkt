@@ -22,9 +22,9 @@
 )
 
 (define extend-env-rec
-  (lambda (p-name b-var body old-env)
+  (lambda (p-names b-vars bodys old-env)
     (extended-env-rec-record
-      p-name b-var body old-env))
+      p-names b-vars bodys old-env))
 )
 
 ; Exercise 3-32
