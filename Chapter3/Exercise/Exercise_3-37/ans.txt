@@ -1,0 +1,5 @@
+lexical binding   :
+	fact will return 25
+
+dynamic binding :
+	fact will return 5!, which is 120
