@@ -57,7 +57,17 @@
         (call-exp 
           (translation-of rator senv)
           (translation-of rand senv)))
-      
+
+      (empty-list-exp () exp)
+
+      (cons-exp (exp1 exp2)
+        (cons-exp
+          (translation-of exp1 senv)
+          (translation-of exp2 senv)))
+        
+      (unpack-exp (vars exp body)
+        (value-of-unpack-exp vars exp body senv))
+
       (else report-invalid-source-expression exp)))
 )
 
@@ -66,4 +76,18 @@
     (lambda (exp)
       (eopl:error 'value-of 
         "Illegal expression in source code: ~s" exp))
+)
+
+(define value-of-unpack-exp 
+  (lambda (ids exp body senv)
+    (letrec
+      ( [E  (lambda (_ids)
+              (if (null? _ids)
+                senv
+                (extend-senv (car _ids) (E (cdr _ids))))
+            )])
+      (nameless-unpack-exp
+        (translation-of exp senv)
+        ; use new senv to translat body.
+        (translation-of body (E ids)))))
 )

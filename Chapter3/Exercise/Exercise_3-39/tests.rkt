@@ -5,7 +5,11 @@
 
 (define test-list
   '(
-
+    ; unpack
+    (unpack-0 "let u = 7
+               in unpack x y = cons(u,cons(3,emptylist))
+                  in -(x,y)" 4)
+    
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)

@@ -24,7 +24,7 @@
           (apply-senv senv var)))
       
       (const-exp (num) 
-        (const-exp num))
+        exp)
 
       (diff-exp (exp1 exp2)
         (diff-exp

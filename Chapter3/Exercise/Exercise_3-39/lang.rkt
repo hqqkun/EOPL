@@ -58,6 +58,21 @@
     (expression
       ("%lexproc" expression)
         nameless-proc-exp)
+
+    (expression
+      ("unpack" (arbno identifier) "=" expression "in" expression)
+      unpack-exp)
+    
+    (expression
+      ("%unpack" expression "in" expression)
+      nameless-unpack-exp)
+    
+    (expression
+      ("emptylist") empty-list-exp)
+    
+    (expression
+      ("cons" "(" expression "," expression ")")
+      cons-exp)
     )
 )
 

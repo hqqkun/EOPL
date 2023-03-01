@@ -17,6 +17,10 @@
     (bool boolean?))
   (proc-val
    (proc proc?))
+  (empty-val)
+  (pair-val
+    (first expval?)
+    (second expval?))
 )
 
 (define expval->proc

@@ -55,6 +55,16 @@
         (proc-val 
           (procedure body nenv)))
 
+      (empty-list-exp () (empty-val))
+
+      (cons-exp (exp1 exp2)
+        (pair-val
+          (value-of exp1 nenv)
+          (value-of exp2 nenv)))
+
+      (nameless-unpack-exp (exp1 body)
+        (value-of-unpack exp1 body nenv))
+
       (else
          (eopl:error 'value-of 
 	    "Illegal expression in translated code: ~s" exp))))
@@ -67,4 +77,20 @@
         (value-of
           body
           (extend-nameless-env arg saved-env)))))
+)
+
+
+(define value-of-unpack 
+  (lambda (exp body nenv)
+    (letrec
+      ( [E  (lambda (_exp)
+              (cases expression _exp
+                (empty-list-exp () nenv)
+                (cons-exp (exp1 exp2)
+                  (let
+                    ( [val1 (value-of exp1 nenv)]
+                      [rest-env (E exp2)])
+                    (extend-nameless-env val1 rest-env)))
+                (else (eopl:error 'value-of "~s is not a list" exp))))])
+      (value-of body (E exp))))
 )
