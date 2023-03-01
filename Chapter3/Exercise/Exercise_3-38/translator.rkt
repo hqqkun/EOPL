@@ -58,6 +58,11 @@
           (translation-of rator senv)
           (translation-of rand senv)))
       
+      (cond-exp (exp-lst1 exp-lst2)
+        (cond-exp
+          (map (lambda (exp) (translation-of exp senv)) exp-lst1)
+          (map (lambda (exp) (translation-of exp senv)) exp-lst2)))
+
       (else report-invalid-source-expression exp)))
 )
 

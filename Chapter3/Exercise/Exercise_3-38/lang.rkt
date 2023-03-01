@@ -58,6 +58,10 @@
     (expression
       ("%lexproc" expression)
         nameless-proc-exp)
+    
+    (expression
+      ("cond" (arbno expression "==>" expression) "end")
+        cond-exp)    
     )
 )
 

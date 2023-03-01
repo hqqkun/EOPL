@@ -5,7 +5,18 @@
 
 (define test-list
   '(
-
+    ;; Exercise 3-38
+    (cond-0 "cond
+              zero?(1) ==> let x = 1 in -(x, 2)
+              zero?(0) ==> let x = 1 in -(x, 3)
+             end
+            " -2)
+    (cond-1 "cond
+              zero?(1) ==> let x = 1 in -(x, 2)
+              zero?(2) ==> let x = 1 in -(x, 3)
+             end
+            " error)
+      
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)

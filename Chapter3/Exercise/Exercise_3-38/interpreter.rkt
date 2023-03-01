@@ -55,6 +55,9 @@
         (proc-val 
           (procedure body nenv)))
 
+      (cond-exp (exp-lst1 exp-lst2)
+        (value-of-cond exp-lst1 exp-lst2 nenv))
+      
       (else
          (eopl:error 'value-of 
 	    "Illegal expression in translated code: ~s" exp))))
@@ -67,4 +70,22 @@
         (value-of
           body
           (extend-nameless-env arg saved-env)))))
+)
+
+; value-of-cond : ListOf(exp) * ListOf(exp) * nenv -> ExpVal
+(define value-of-cond
+  (lambda (exp-lst1 exp-lst2 nenv)
+    (letrec
+      ( [V  (lambda (exp-l1 exp-l2)
+              (cond
+                ((null? exp-l1) (report-cond-false (cond-exp exp-lst1 exp-lst2)))
+                ((eqv? #t (expval->bool (value-of (car exp-l1) nenv)))
+                  (value-of (car exp-l2) nenv))
+                (else (V (cdr exp-l1) (cdr exp-l2)))))])
+      (V exp-lst1 exp-lst2)))
+)
+
+(define report-cond-false
+  (lambda (exp)
+      (eopl:error 'value-of "at least one condition must be true! exp : ~s" exp))
 )
