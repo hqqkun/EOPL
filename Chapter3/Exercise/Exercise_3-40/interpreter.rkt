@@ -18,6 +18,30 @@
 (define value-of
   (lambda (exp nenv)
     (cases expression exp
+      ;   letrec
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      
+      ; when this is a rec var, then that is a rec function
+      ; it must save it's self ExpVal is it's new closure.
+      (nameless-letrec-var-exp (n)
+        (let
+          ( [proc1 (expval->proc (apply-nameless-env nenv n))])
+          (cases proc proc1
+            (procedure (body saved-env)
+              (proc-val
+                (procedure 
+                  body 
+                  (extend-nameless-env 
+                    (proc-val proc1) 
+                    saved-env)))))))
+        
+      (nameless-letrec-exp (exp1 body)
+        (let*
+          ( [val1 (value-of exp1 nenv)]
+            [new-nenv (extend-nameless-env val1 nenv)])
+          (value-of body new-nenv)))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      
       (const-exp (num)
         (num-val num))
 

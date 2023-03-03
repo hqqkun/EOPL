@@ -29,6 +29,19 @@
       call-exp)
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+   (expression
+      ("letrec" identifier "(" identifier ")"
+        "=" expression "in" expression)
+      letrec-exp)
+
+    (expression
+      ("%letrec" expression expression)
+      nameless-letrec-exp)
+    
+    (expression 
+      ("%lexrefrec" number)
+      nameless-letrec-var-exp)
+
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")
@@ -58,6 +71,7 @@
     (expression
       ("%lexproc" expression)
         nameless-proc-exp)
+    
     )
 )
 

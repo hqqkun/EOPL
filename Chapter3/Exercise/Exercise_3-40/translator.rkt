@@ -19,10 +19,26 @@
 (define translation-of
   (lambda (exp senv)
     (cases expression exp
-      (var-exp (var) 
-        (nameless-var-exp 
-          (apply-senv senv var)))
-      
+      (var-exp (var)
+        (let*
+          ( [res (apply-senv senv var)]
+            [index (car res)]
+            [is-rec-var (cdr res)])
+        
+          (if is-rec-var
+            (nameless-letrec-var-exp index)
+            (nameless-var-exp index))))
+    ;   letrec
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (letrec-exp (p-name b-var p-body body)
+      (let
+        ( [rec-senv (extend-rec-senv p-name senv)])
+        (nameless-letrec-exp
+          (nameless-proc-exp
+            (translation-of p-body (extend-senv b-var rec-senv)))
+          (translation-of body rec-senv))))
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
       (const-exp (num) 
         exp)
 

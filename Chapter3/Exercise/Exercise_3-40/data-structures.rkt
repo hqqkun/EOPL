@@ -89,16 +89,26 @@
 ; extend-senv : Var * Senv -> Senv
 (define extend-senv
   (lambda (var senv)
-    (cons var senv))
+    (cons (cons var #f) senv))
 )
 
-; apply-senv : Senv * Var -> Lexaddr
+(define extend-rec-senv
+  (lambda (var senv)
+    (cons (cons var #t) senv))
+)
+
+; apply-senv : Senv * Var -> Pair(Lexaddr, bool)
 (define apply-senv
   (lambda (senv search-var)
       (cond
         ((null? senv) (report-unbound-var search-var))
-        ((eqv? (car senv) search-var) 0)
-        (else (+ 1 (apply-senv (cdr senv) search-var)))))
+        ((eqv? (caar senv) search-var) (cons 0 (cdar senv)))
+        (else
+          (let*
+            ( [res (apply-senv (cdr senv) search-var)]
+              [index (car res)]
+              [is-rec-var (cdr res)])
+            (cons (+ 1 index) is-rec-var)))))
 )
 
 (define report-unbound-var
