@@ -21,11 +21,11 @@
     ;; proc
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (expression
-      ("proc" "(" identifier ")" expression)
+      ("proc" "(" (separated-list identifier ",") ")" expression)
       proc-exp)
 
     (expression
-      ("(" expression expression ")")
+      ("(" expression (arbno expression) ")")
       call-exp)
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -45,14 +45,15 @@
     (expression (identifier) var-exp)
 
     (expression
-     ("let" identifier "=" expression "in" expression)
+     ("let" (arbno identifier "=" expression) "in" expression)
      let-exp)
 
     (expression
-      ("%lexref" number) nameless-var-exp)
+      ; Pair(Lex-depth, Position)
+      ("%lexref" number "of" number) nameless-var-exp)
     
     (expression
-      ("%let" expression expression)
+      ("%let" (arbno expression) "in" expression)
         nameless-let-exp)
 
     (expression

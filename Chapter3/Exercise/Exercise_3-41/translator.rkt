@@ -19,9 +19,13 @@
 (define translation-of
   (lambda (exp senv)
     (cases expression exp
+
       (var-exp (var) 
-        (nameless-var-exp 
-          (apply-senv senv var)))
+        (let*
+          ( [p (apply-senv senv var)]
+            [lex-depth (car p)]
+            [index (cdr p)])
+          (nameless-var-exp lex-depth index)))
       
       (const-exp (num) 
         exp)
@@ -40,23 +44,23 @@
           (translation-of exp2 senv)
           (translation-of exp3 senv)))
       
-      (let-exp (var exp1 body)
+      (let-exp (var-lst exp-lst body)
         (nameless-let-exp
-          (translation-of exp1 senv)
+          (map (lambda (exp) (translation-of exp senv)) exp-lst)
           (translation-of 
             body 
-            (extend-senv var senv))))
+            (extend-senv* var-lst senv))))
 
-      (proc-exp (var body)
+      (proc-exp (var-lst body)
         (nameless-proc-exp
           (translation-of
             body
-            (extend-senv var senv))))
+            (extend-senv* var-lst senv))))
       
-      (call-exp (rator rand)
+      (call-exp (rator rands)
         (call-exp 
           (translation-of rator senv)
-          (translation-of rand senv)))
+          (map (lambda (rand) (translation-of rand senv)) rands)))
       
       (else report-invalid-source-expression exp)))
 )

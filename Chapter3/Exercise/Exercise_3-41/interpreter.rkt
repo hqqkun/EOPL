@@ -18,11 +18,12 @@
 (define value-of
   (lambda (exp nenv)
     (cases expression exp
+      
       (const-exp (num)
         (num-val num))
 
-      (nameless-var-exp (n)
-        (apply-nameless-env nenv n))
+      (nameless-var-exp (lex-depth index)
+        (apply-nameless-env nenv lex-depth index))
 
       (diff-exp (exp1 exp2)
         (num-val
@@ -39,17 +40,17 @@
           (value-of exp2 nenv)
           (value-of exp3 nenv)))
       
-      (nameless-let-exp (exp1 body)
+      (nameless-let-exp (exp-lst body)
         (let*
-          ( [val1 (value-of exp1 nenv)]
-            [new-nenv (extend-nameless-env val1 nenv)])
+          ( [val-lst (map (lambda (exp) (value-of exp nenv)) exp-lst)]
+            [new-nenv (extend-nameless-env* val-lst nenv)])
           (value-of body new-nenv)))
 
-      (call-exp (rator rand)
+      (call-exp (rator rands)
         (let
           ( [proc (expval->proc (value-of rator nenv))]
-            [arg (value-of rand nenv)])
-          (apply-proc proc arg)))
+            [args (map (lambda (rand) (value-of rand nenv)) rands)])
+          (apply-proc proc args)))
 
       (nameless-proc-exp (body)
         (proc-val 
@@ -60,11 +61,12 @@
 	    "Illegal expression in translated code: ~s" exp))))
 )
 
+; apply-proc : Proc * ListOf(ExpVal) -> ExpVal
 (define apply-proc
-  (lambda (proc1 arg)
+  (lambda (proc1 args)
     (cases proc proc1
       (procedure (body saved-env)
         (value-of
           body
-          (extend-nameless-env arg saved-env)))))
+          (extend-nameless-env* args saved-env)))))
 )

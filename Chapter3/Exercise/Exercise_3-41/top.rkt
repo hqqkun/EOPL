@@ -9,6 +9,7 @@
 (require "interpreter.rkt")       ; for value-of-program
 (require "tests.rkt")             ; for test-list
 (require "translator.rkt")	      ; for translation-of-program
+(require "environments.rkt")
 
 (provide run run-all)
 

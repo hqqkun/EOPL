@@ -9,6 +9,7 @@
       ;; proc 
       (func-0 "let f = proc(x, y) -(x, -(0, y)) in (f 1 2)" 3)
       (func-1 "let f = proc(x, y, z) -(x, -(y,z)) in (f 1 2 3)" 2)
+      
       ;; simple arithmetic
       (positive-const "11" 11)
       (negative-const "-33" -33)

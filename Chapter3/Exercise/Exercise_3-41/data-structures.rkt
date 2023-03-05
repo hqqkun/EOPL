@@ -53,7 +53,7 @@
 ; nameless-environment? : SchemeVal -> Bool
 (define nameless-environment?
   (lambda (env)
-    ((list-of expval?) env))
+    ((list-of (list-of expval?)) env))
 )
 
 ; empty-nameless-env : () -> Nameless-env
@@ -68,13 +68,18 @@
 ; extend-nameless-env : ExpVal * Nameless-env -> Nameless-env
 (define extend-nameless-env
   (lambda (val env)
-    (cons val env))
+   (extend-nameless-env* (list val) env))
 )
 
-; apply-nameless-env : Nameless-env * Lexaddr -> ExpVal
+; extend-nameless-env* : ListOf(ExpVal) * Nameless-env -> Nameless-env
+(define extend-nameless-env*
+  (lambda (vals env)
+    (cons vals env)))
+
+; apply-nameless-env : Nameless-env * Lex-depth * Pos -> ExpVal
 (define apply-nameless-env
-  (lambda (env pos)
-    (list-ref env pos))
+  (lambda (env lex-depth pos)
+    (list-ref (list-ref env lex-depth) pos))
 )
 
 
@@ -89,16 +94,36 @@
 ; extend-senv : Var * Senv -> Senv
 (define extend-senv
   (lambda (var senv)
-    (cons var senv))
+   (extend-senv* (list var) senv))
 )
 
-; apply-senv : Senv * Var -> Lexaddr
+; extend-senv* : ListOf(Var) * Senv -> Senv
+(define extend-senv*
+  (lambda (vars senv)
+    (cons vars senv))
+)
+
+; apply-senv : Senv * Var -> Pair(Lex-depth, Position)
 (define apply-senv
   (lambda (senv search-var)
-      (cond
-        ((null? senv) (report-unbound-var search-var))
-        ((eqv? (car senv) search-var) 0)
-        (else (+ 1 (apply-senv (cdr senv) search-var)))))
+    (letrec
+      ( [A  (lambda (vars index)
+              (cond
+                ((null? vars) -1)
+                ((eqv? (car vars) search-var) index)
+                (else (A (cdr vars) (+ index 1)))))])
+      
+      (if (null? senv)
+        (report-unbound-var search-var)
+        (let
+          ( [first-index (A (car senv) 0)])
+          (if (>= first-index 0)
+            (cons 0 first-index)
+            (let*
+              ( [rest-res (apply-senv (cdr senv) search-var)]
+                [lex-depth (car rest-res)]
+                [index (cdr rest-res)])
+              (cons (+ lex-depth 1) index)))))))
 )
 
 (define report-unbound-var

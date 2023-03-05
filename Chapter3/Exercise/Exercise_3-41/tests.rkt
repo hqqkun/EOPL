@@ -5,6 +5,10 @@
 
 (define test-list
   '(
+    ;; proc 
+    (func-0 "let f = proc(x, y) -(x, -(0, y)) in (f 1 2)" 3)
+    (func-1 "let f = proc(x, y, z) -(x, -(y, z)) in (f 1 2 3)" 2)
+    (func-2 "let a = 2 b = 3 c = 6 f = proc(x, y, z) -(x, -(y, z)) in (f a b c)" 5)
 
     ;; simple arithmetic
     (positive-const "11" 11)
@@ -57,7 +61,7 @@
     (check-shadowing-in-rhs "let x = 3 in let x = -(x,1) in x" 2)
 
     ;; simple applications
-    (apply-proc-in-rator-pos "(proc(x) -(x,1)  30)" 29)
+    (apply-proc-in-rator-pos "(proc(z) -(z,1)  30)" 29)
     (apply-simple-proc "let f = proc (x) -(x,1) in (f 30)" 29)
     (let-to-proc-1 "(proc(f)(f 30)  proc(x)-(x,1))" 29)
 
