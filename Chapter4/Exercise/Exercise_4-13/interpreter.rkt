@@ -70,24 +70,24 @@
             [store1 (answer->store res1)])
           (value-of body (extend-env var val1 env) store1)))   
       
-      (proc-exp (var body)
+      (proc-exp (vars body)
         (an-answer
-          (proc-val (procedure var body env))
+          (proc-val (procedure vars body env))
           store))
 
-      (call-exp (rator rand)
+      (call-exp (rator rands)
         (let*
           ( [res1 (value-of rator env store)]
             [proc (expval->proc (answer->val res1))]
             [store1 (answer->store res1)]
-            [res2 (value-of rand env store1)]
-            [arg (answer->val res2)]
-            [store2 (answer->store res2)])
-          (apply-procedure proc arg store2)))
+            [res2 (value-of-rands rands store1 env)]
+            [args (car res2)]
+            [store2 (cdr res2)])
+          (apply-procedure proc args store2)))
 
-      (letrec-exp (p-names b-vars p-bodies letrec-body)
+      (letrec-exp (p-names list-of-b-vars p-bodies letrec-body)
         (value-of letrec-body
-          (extend-env-rec* p-names b-vars p-bodies env) store))
+          (extend-env-rec* p-names list-of-b-vars p-bodies env) store))
 
       (begin-exp (exp1 exps)
         (letrec
@@ -136,8 +136,37 @@
 ;   apply-procedure : Proc * ExpVal -> ExpVal
 ;   uninstrumented version
 (define apply-procedure
-  (lambda (proc1 arg store)
+  (lambda (proc1 args store)
     (cases proc proc1
-      (procedure (bvar body saved-env)
-        (value-of body (extend-env bvar arg saved-env) store))))
+      (procedure (bvars body saved-env)
+        (letrec
+          ( [E 
+              (lambda (vars args)
+                (if (null? vars)
+                saved-env
+                (extend-env (car vars) (car args) 
+                  (E (cdr vars) (cdr args)))))])
+          (value-of body (E bvars args) store)))))
+)
+
+; cps form
+; col means collector
+; value-of-rands : ListOf(Exps) * Store * Env -> Pair(args, last-store)
+(define value-of-rands
+  (lambda (rands init-store env)
+    (letrec
+      ( [V  
+          (lambda (rands last-store col)
+            (if (null? rands)
+              (col '() last-store)
+              (let* 
+                ( [res1 (value-of (car rands) env last-store)]
+                  [val1 (answer->val res1)]
+                  [store1 (answer->store res1)])
+                (V (cdr rands) store1 
+                  (lambda (args l-sto)
+                    (col (cons val1 args) l-sto))))))])
+
+      (V rands init-store 
+        (lambda (args l-sto) (cons args l-sto)))))
 )

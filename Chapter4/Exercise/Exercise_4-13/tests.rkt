@@ -5,6 +5,7 @@
 
 (define test-list
   '(
+      (t0 "let f = proc(x, y, z) -(x, -(y, z)) in (f 4 2 3)" 5)
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)
@@ -83,10 +84,10 @@ in let times4 = (fix t4m)
  in letrec f(x) = if zero?(x) then 0 else -((f -(x,1)), m) in (f 4)"
      20)
 
-         (fact-of-6  "letrec
-     fact(x) = if zero?(x) then 1 else *(x, (fact sub1(x)))
-    in (fact 6)"
-                     720)
+    ;      (fact-of-6  "letrec
+    ;  fact(x) = if zero?(x) then 1 else *(x, (fact sub1(x)))
+    ;in (fact 6)"
+    ;                  720)
 
     (HO-nested-letrecs
      "letrec even(odd)  = proc(x) if zero?(x) then 1 else (odd -(x,1))
@@ -157,5 +158,5 @@ in begin
     deref(deref(x))
    end"
               11)
-
-    ))
+    )
+)

@@ -30,6 +30,20 @@
           (value-of exp1 (init-env)))))
 )
 
+; value-of-list-exp : ListOf(Exp) * Env -> ExpVal
+(define value-of-list-exp
+  (lambda (exps env)
+    (letrec
+      ( [V  (lambda (exps)
+              (if (null? exps)
+                (list-val '())
+                (let*
+                  ( [val1 (value-of (car exps) env)]
+                    [rest-val(expval->list (V (cdr exps)))])
+                  (list-val (cons val1 rest-val)))))])
+      (V exps)))
+)
+
 ;; value-of : Exp * Env -> ExpVal
 (define value-of
   (lambda (exp env)
@@ -37,8 +51,7 @@
 
       ; list
       (list-exp (exps)
-        (list-val
-          (map (lambda (exp) (value-of exp env)) exps)))
+        (value-of-list-exp exps env))
 
       (const-exp (num) (num-val num))
 

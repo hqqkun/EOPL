@@ -39,6 +39,17 @@
 
         (var-exp (var) (apply-env env var))
 
+        (sub1-exp (exp1)
+          (let
+            ( [num1 (expval->num (value-of exp1 env))])
+            (num-val (- num1 1))))
+
+        (mul-exp (exp1 exp2)
+          (let
+            ( [num1 (expval->num (value-of exp1 env))]
+              [num2 (expval->num (value-of exp2 env))])
+            (num-val (* num1 num2))))
+        
         (diff-exp (exp1 exp2)
           (let ((val1 (value-of exp1 env))
                 (val2 (value-of exp2 env)))

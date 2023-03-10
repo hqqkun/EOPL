@@ -9,6 +9,8 @@
     (t0 "list()" ())
     (t1 "let x = 4 in list(x, -(x,1), -(x,3))" (4 3 1))
     (t2 "list(1, 2, 3, 4, 5, 6)" (1 2 3 4 5 6))
+    (t3 "let x = newref(3) in list(deref(x), -(deref(x), 1) , -(deref(x), 2))" (3 2 1))
+    (t4 "let x = newref(newref(4)) in list(deref(deref(x)), -(deref(deref(x)), 1))" (4 3))
     
     ;; simple arithmetic
     (positive-const "11" 11)

@@ -23,15 +23,6 @@
   '((program (expression) a-program)
 
     (expression (number) const-exp)
-
-    (expression
-      ("*" "(" expression "," expression ")")
-      mul-exp)
-    
-    (expression
-      ("sub1" "(" expression ")")
-      sub1-exp)
-
     (expression
      ("-" "(" expression "," expression ")")
      diff-exp)
@@ -51,16 +42,16 @@
      let-exp)
 
     (expression
-     ("proc" "(" identifier ")" expression)
+     ("proc" "(" (separated-list identifier ",") ")" expression)
      proc-exp)
 
     (expression
-     ("(" expression expression ")")
+     ("(" expression (arbno expression) ")")
      call-exp)
 
     (expression
      ("letrec"
-      (arbno identifier "(" identifier ")" "=" expression)
+      (arbno identifier "(" (separated-list identifier ",") ")" "=" expression)
       "in" expression)
      letrec-exp)
 
