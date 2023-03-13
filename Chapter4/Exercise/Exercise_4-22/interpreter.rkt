@@ -1,47 +1,50 @@
 #lang eopl
 
-;; interpreter for the IMPLICIT-REFS language
+(require "drscheme-init.rkt")
 
-  (require "drscheme-init.rkt")
+(require "lang.rkt")
+(require "data-structures.rkt")
+(require "environments.rkt")
+(require "store.rkt")
 
-  (require "lang.rkt")
-  (require "data-structures.rkt")
-  (require "environments.rkt")
-  (require "store.rkt")
-  
-  (provide value-of-program value-of instrument-let instrument-newref)
+(define value-of-program
+  (lambda (pgm)
+    (cases program pgm
+      (a-program (stmt1)
+        (result-of stmt1 )))
+  ))
 
-;;;;;;;;;;;;;;;; switches for instrument-let ;;;;;;;;;;;;;;;;
 
-  (define instrument-let (make-parameter #f))
+(define result-of
+  (lambda (stmt env)
+    (cases statement stmt
 
-  ;; say (instrument-let #t) to turn instrumentation on.
-  ;;     (instrument-let #f) to turn it off again.
+      (assign-stmt (var exp)
+        (setref! 
+          (apply-env env var)
+          (value-of exp env)))  
+      
+      (print-stmt (exp1)
+        (cases expval (value-of exp1 env)
+          (num-val (num) 
+            (display num))
+          (bool-val (bool)
+            (display bool))
+          (else (eopl:error 'result-of "not printable")))
+        (newline))
+    )
+  )
+)
 
-;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
-  ;; value-of-program : Program -> ExpVal
-  (define value-of-program 
-    (lambda (pgm)
-      (initialize-store!)
-      (cases program pgm
-        (a-program (exp1)
-          (value-of exp1 (init-env))))))
 
-  ;; value-of : Exp * Env -> ExpVal
-  ;; Page: 118, 119
-  (define value-of
+(define value-of
     (lambda (exp env)
       (cases expression exp
 
         (const-exp (num) (num-val num))
 
-        (var-exp (var)
-          (let
-            ( [denval (apply-env env var)])
-            (if (reference? denval)
-              (deref denval)
-              denval)))
+        (var-exp (var) (deref (apply-env env var)))
 
         (diff-exp (exp1 exp2)
           (let ((val1 (value-of exp1 env))
@@ -65,16 +68,9 @@
               (value-of exp3 env))))
 
         (let-exp (var exp1 body)       
-          (let*
-            ( [val (value-of exp1 env)]
-              [new-env (extend-env var val env)])
-            (value-of body new-env)))
-          
-        (letmut-exp (var exp1 body)
-          (let*
-            ( [val (value-of exp1 env)]
-              [new-env (extend-env var (newref val) env)])
-            (value-of body new-env)))
+          (let ((v1 (value-of exp1 env)))
+            (value-of body
+              (extend-env var (newref v1) env))))
         
         (proc-exp (var body)
           (proc-val (procedure var body env)))
@@ -104,14 +100,6 @@
               (apply-env env var)
               (value-of exp1 env))
             (num-val 27)))
-        ))
-)
 
-; uninstrumented version
-(define apply-procedure
-  (lambda (proc1 val)
-    (cases proc proc1
-      (procedure (var body saved-env)
-        (value-of body
-          (extend-env var val saved-env)))))
+        ))
 )

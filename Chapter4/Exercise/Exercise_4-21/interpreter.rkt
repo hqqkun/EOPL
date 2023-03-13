@@ -34,14 +34,20 @@
     (lambda (exp env)
       (cases expression exp
 
+        ; Exercise 4-21
+        (setdyn-exp (var exp1 body)
+          (let*
+            ( [ref (apply-env env var)]
+              [old-val (deref ref)]
+              [val1 (value-of exp1 env)]
+              [_ (setref! ref val1)]
+              [body-val (value-of body env)]
+              [__ (setref! ref old-val)])
+            body-val))
+
         (const-exp (num) (num-val num))
 
-        (var-exp (var)
-          (let
-            ( [denval (apply-env env var)])
-            (if (reference? denval)
-              (deref denval)
-              denval)))
+        (var-exp (var) (deref (apply-env env var)))
 
         (diff-exp (exp1 exp2)
           (let ((val1 (value-of exp1 env))
@@ -65,16 +71,9 @@
               (value-of exp3 env))))
 
         (let-exp (var exp1 body)       
-          (let*
-            ( [val (value-of exp1 env)]
-              [new-env (extend-env var val env)])
-            (value-of body new-env)))
-          
-        (letmut-exp (var exp1 body)
-          (let*
-            ( [val (value-of exp1 env)]
-              [new-env (extend-env var (newref val) env)])
-            (value-of body new-env)))
+          (let ((v1 (value-of exp1 env)))
+            (value-of body
+              (extend-env var (newref v1) env))))
         
         (proc-exp (var body)
           (proc-val (procedure var body env)))
@@ -104,14 +103,46 @@
               (apply-env env var)
               (value-of exp1 env))
             (num-val 27)))
-        ))
-)
 
-; uninstrumented version
-(define apply-procedure
-  (lambda (proc1 val)
-    (cases proc proc1
-      (procedure (var body saved-env)
-        (value-of body
-          (extend-env var val saved-env)))))
-)
+        )))
+
+
+  ;; apply-procedure : Proc * ExpVal -> ExpVal
+  ;; Page: 119
+
+  ;; uninstrumented version
+  ;;  (define apply-procedure
+  ;;    (lambda (proc1 val)
+  ;;      (cases proc proc1
+  ;;        (procedure (var body saved-env)
+  ;;          (value-of body
+  ;;            (extend-env var (newref val) saved-env))))))
+  
+  ;; instrumented version
+  (define apply-procedure
+    (lambda (proc1 arg)
+      (cases proc proc1
+        (procedure (var body saved-env)
+          (let ((r (newref arg)))
+            (let ((new-env (extend-env var r saved-env)))
+              (when (instrument-let)
+                (begin
+                  (eopl:printf
+                    "entering body of proc ~s with env =~%"
+                    var)
+                  (pretty-print (env->list new-env)) 
+                  (eopl:printf "store =~%")
+                  (pretty-print (store->readable (get-store-as-list)))
+                  (eopl:printf "~%")))
+              (value-of body new-env)))))))  
+
+  ;; store->readable : Listof(List(Ref,Expval)) 
+  ;;                    -> Listof(List(Ref,Something-Readable))
+  (define store->readable
+    (lambda (l)
+      (map
+        (lambda (p)
+          (list
+            (car p)
+            (expval->printable (cadr p))))
+        l)))

@@ -5,7 +5,12 @@
 
 (define test-list
   '(
-
+    ;; Exercise 4-21
+    (dynset "let x = 11
+         in let p = proc (y) -(y,x)
+            in -(setdynamic x = 17 during (p 22),
+                (p 13))" 3)
+    
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)
@@ -101,20 +106,20 @@ in let times4 = (fix t4m)
 
     ;; extremely primitive testing for mutable variables
 
-    (assignment-test-1 "letmutable x = 17
+    (assignment-test-1 "let x = 17
                           in begin set x = 27; x end"
                        27)
 
 
     (gensym-test
-     "let g = letmutable count = 0 in proc(d) 
+     "let g = let count = 0 in proc(d) 
                         let d = set count = -(count,-1)
                         in count
 in -((g 11), (g 22))"
      -1)
 
     (even-odd-via-set "
-letmutable x = 0
+let x = 0
 in letrec even(d) = if zero?(x) then 1 
                                   else let d = set x = -(x,1)
                                        in (odd d)
@@ -122,5 +127,14 @@ in letrec even(d) = if zero?(x) then 1
                                   else let d = set x = -(x,1)
                                        in (even d)
    in let d = set x = 13 in (odd -99)" 1)
-  )
-)
+
+    (example-for-book-1 "
+let f = proc (x) proc (y) 
+                  begin
+                   set x = -(x,-1);
+                   -(x,y)
+                  end
+in ((f 44) 33)"
+                        	12)
+
+    ))

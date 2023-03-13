@@ -14,13 +14,12 @@
 (define init-env
   (lambda ()
     (extend-env
-     'i (num-val 1)
+     'i (newref (num-val 1))
      (extend-env
-      'v  (num-val 5)
+      'v (newref (num-val 5))
       (extend-env
-       'x (num-val 10)
-       (empty-env)))))
-)
+       'x (newref (num-val 10))
+       (empty-env))))))
 
 ;;;;;;;;;;;;;;;; environment constructors and observers ;;;;;;;;;;;;;;;;
 
