@@ -20,6 +20,10 @@
   '((program (statement) a-program)
 
     (statement
+      ("read" identifier)
+      read-stmt)
+    
+    (statement
       (identifier "=" expression)
       assign-stmt)
 

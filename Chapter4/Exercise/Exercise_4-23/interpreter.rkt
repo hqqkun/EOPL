@@ -24,6 +24,14 @@
   (lambda (stmt env)
     (cases statement stmt
 
+      (read-stmt (var)
+        (let*
+          ( [raw-val (read)]
+            [val1 (num-val raw-val)])
+          (setref!
+            (apply-env env var)
+            val1)))
+      
       (assign-stmt (var exp)
         (setref! 
           (apply-env env var)
