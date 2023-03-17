@@ -49,7 +49,11 @@
             (result-of stmt2 env)))
 
         (block-rec-stmt (p-names list-b-vars p-bodies stmt1)
-          (result-of stmt1 (extend-env-rec* p-names list-b-vars p-bodies env)))
+          (let*
+            ( [new-env (extend-env-uninit* p-names env)]
+              [procs (make-procs list-b-vars p-bodies new-env)]
+              [_ (set-vars! p-names procs new-env)])
+            (result-of stmt1 new-env)))
 
         (block-stmt (vars stmt1)
           (let 
@@ -162,4 +166,32 @@
       (procedure (vars body saved-env)
         (value-of body
           (extend-env* vars vals saved-env)))))
+)
+
+
+(define make-procs
+  (lambda (list-b-vars p-bodies env)
+    (letrec
+      ( [M  (lambda (list-b-vars p-bodies)
+              (if (null? list-b-vars)
+                '()
+                (cons
+                  (proc-val (procedure (car list-b-vars) (car p-bodies) env))
+                  (M (cdr list-b-vars) (cdr p-bodies)))))])
+      (M list-b-vars p-bodies)))
+)
+
+
+(define set-vars!
+  (lambda (vars vals env)
+    (letrec
+      ( [S  (lambda (vars vals)
+              (if (null? vars)
+                #t
+                (begin
+                  (setref! 
+                    (apply-env env (car vars)) 
+                    (car vals))
+                  (S (cdr vars) (cdr vals)))))])
+      (S vars vals)))
 )

@@ -7,7 +7,6 @@
 (require "data-structures.rkt")  ; for expval constructors
 (require "lang.rkt")             ; for scan&parse
 (require "interpreter.rkt")           ; for value-of-program
-(require "tests.rkt")            ; for test-list
 
 
 ;;;;;;;;;;;;;;;; interface to test harness ;;;;;;;;;;;;;;;;
