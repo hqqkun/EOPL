@@ -34,6 +34,25 @@
     (lambda (exp env)
       (cases expression exp
 
+        ;; Exercise 4-35
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        (ref-exp (var)
+          (ref-val
+            (apply-env env var)))
+        
+        (deref-exp (exp1)
+          (let
+            ( [ref (expval->ref (value-of exp1 env))])
+            (deref ref)))
+        
+        (setref-exp (exp1 exp2)
+          (let
+            ( [ref (expval->ref (value-of exp1 env))]
+              [val (value-of exp2 env)])
+            (begin
+              (setref! ref val)
+              (num-val 84))))
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (const-exp (num) (num-val num))
 
         (var-exp (var) (deref (apply-env env var)))

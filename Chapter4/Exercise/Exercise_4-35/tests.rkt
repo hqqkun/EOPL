@@ -5,7 +5,18 @@
 
 (define test-list
   '(
-
+    ;; Exercise 4-35
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (t0 " let a = 2
+          in  let b = 10
+              in let swap = proc (x) proc (y)
+                            let temp = deref(x)
+                            in  begin
+                                  setref(x,deref(y));
+                                  setref(y,temp)
+                                end
+                  in begin ((swap ref a) ref b); -(a,b) end" 8)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)

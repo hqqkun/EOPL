@@ -18,6 +18,21 @@
 (define the-grammar
   '((program (expression) a-program)
 
+    ;; Exercise 4-35
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (expression
+     ("deref" "(" expression ")")
+     deref-exp)
+
+    (expression
+     ("setref" "(" expression "," expression ")")
+     setref-exp)
+    
+    (expression
+      ("ref" identifier)
+      ref-exp)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")
