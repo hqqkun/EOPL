@@ -9,6 +9,7 @@
 (require "environments.rkt")
 (require "store.rkt")
 (require "pairvals.rkt")
+(require "arrayval.rkt")
 
 (provide value-of-program value-of instrument-let instrument-newref)
 
@@ -35,6 +36,31 @@
     (lambda (exp env)
       (cases expression exp
 
+        ; array
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+        (newarray-exp (exp1 exp2)
+          (let* 
+            ( [len (expval->num (value-of exp1 env))]
+              [val2 (value-of exp2 env)])
+            (array-val (make-array len val2))))
+        
+        (arrayref-exp (exp1 exp2)
+          (let*
+            ( [val1 (value-of exp1 env)]
+              [val2 (value-of exp2 env)]
+              [arr (expval->array val1)]
+              [index (expval->num val2)])
+            (deref (arrayref arr index))))
+        
+        (arrayset-exp (exp1 exp2 exp3)
+          (let*
+            ( [val1 (value-of exp1 env)]
+              [val2 (value-of exp2 env)]
+              [val3 (value-of exp3 env)]
+              [arr (expval->array val1)]
+              [index (expval->num val2)])
+            (arrayset arr index val3)))
+        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ; pair
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (newpair-exp (exp1 exp2)
@@ -98,10 +124,10 @@
               (value-of exp2 env)
               (value-of exp3 env))))
 
-        (let-exp (var exp1 body)       
-          (let ((v1 (value-of exp1 env)))
+        (let-exp (vars exps body)       
+          (let (  [vals (map (lambda (exp) (value-of exp env)) exps)])
             (value-of body
-              (extend-env var (newref v1) env))))
+              (extend-env* vars vals env))))
         
         (proc-exp (var body)
           (proc-val (procedure var body env)))
@@ -181,6 +207,15 @@
   (lambda (exp env)
     (cases expression exp
       (var-exp (var) (apply-env env var))
+
+      (arrayref-exp (exp1 exp2)
+        (let*
+          ( [val1 (value-of exp1 env)]
+            [val2 (value-of exp2 env)]
+            [arr (expval->array val1)]
+            [index (expval->num val2)])
+          (arrayref arr index)))
+
       (else 
         (newref
           (value-of exp env)))))

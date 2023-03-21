@@ -5,7 +5,27 @@
 
 (define test-list
     '(
-  
+      ;; array test
+      (array-0 "let a = newarray(2,-99)
+                    p = proc (x)
+                          let v = arrayref(x,1)
+                          in arrayset(x,1,-(v,-1))
+                in begin arrayset(a,1,0); (p a); (p a); arrayref(a,1) end" 2)
+
+      (array-1 "let a = newarray(2,-99)
+                    swap = proc(x) proc(y) 
+                            let tmp = x
+                            in  begin
+                                  set x = y;
+                                  set y = tmp
+                                end
+                in begin
+                    arrayset(a, 0, 99999);
+                    arrayset(a, 1, 8);
+                    ((swap arrayref(a, 0)) arrayref(a, 1));
+                    arrayref(a, 1)
+                  end" 99999)
+              
       ;; simple arithmetic
       (positive-const "11" 11)
       (negative-const "-33" -33)

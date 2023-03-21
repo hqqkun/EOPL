@@ -18,6 +18,22 @@
 (define the-grammar
   '((program (expression) a-program)
 
+    ; new for `array`
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (expression
+      ("newarray" "(" expression "," expression ")")
+      newarray-exp)
+    
+    (expression
+      ("arrayref" "(" expression "," expression ")")
+      arrayref-exp)
+    
+    (expression
+      ("arrayset" 
+        "(" expression "," expression "," expression ")")
+      arrayset-exp)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")
@@ -34,7 +50,7 @@
     (expression (identifier) var-exp)
 
     (expression
-     ("let" identifier "=" expression "in" expression)
+     ("let" (arbno identifier "=" expression) "in" expression)
      let-exp)
 
     (expression
