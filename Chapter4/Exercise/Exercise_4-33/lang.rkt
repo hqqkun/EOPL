@@ -18,6 +18,11 @@
 (define the-grammar
   '((program (expression) a-program)
 
+    ;; call by value
+    (expression
+      ("[" expression expression "]")
+      call-val-exp)
+    
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")

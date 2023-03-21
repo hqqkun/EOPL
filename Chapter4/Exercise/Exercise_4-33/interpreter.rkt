@@ -35,6 +35,13 @@
     (lambda (exp env)
       (cases expression exp
 
+        ; call by value 
+        (call-val-exp (exp1 exp2)
+          (let
+            ( [proc (expval->proc (value-of exp1 env))]
+              [arg (newref (value-of exp2 env))])
+            (apply-procedure proc arg)))
+        
         ; pair
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (newpair-exp (exp1 exp2)

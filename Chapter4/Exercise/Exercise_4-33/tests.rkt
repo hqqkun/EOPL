@@ -5,7 +5,11 @@
 
 (define test-list
     '(
-  
+      ;; call by value
+      (t0 "let a = 12
+          in let p = proc(x) set x = 15
+             in begin [p a]; a end" 12)
+
       ;; simple arithmetic
       (positive-const "11" 11)
       (negative-const "-33" -33)
