@@ -5,7 +5,11 @@
 
 (define test-list
     '(
-  
+      ;; letref
+      (t0 "let a = 10
+           in letref b = a
+              in begin set b = 12; a end" 12)
+      
       ;; simple arithmetic
       (positive-const "11" 11)
       (negative-const "-33" -33)

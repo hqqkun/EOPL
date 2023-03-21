@@ -37,6 +37,11 @@
      ("let" identifier "=" expression "in" expression)
      let-exp)
 
+    
+    (expression
+      ("letref" identifier "=" expression "in" expression)
+      letref-exp)
+    
     (expression
      ("proc" "(" identifier ")" expression)
      proc-exp)

@@ -34,7 +34,12 @@
   (define value-of
     (lambda (exp env)
       (cases expression exp
-
+        
+        ;; letref
+        (letref-exp (var exp1 body)
+          (let
+            ( [ref (value-of-oprand exp1 env)])
+            (value-of body (extend-env var ref env))))
         ; pair
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (newpair-exp (exp1 exp2)
