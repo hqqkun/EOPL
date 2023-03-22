@@ -107,10 +107,11 @@
               (value-of exp2 env)
               (value-of exp3 env))))
 
-        (let-exp (var exp1 body)       
-          (let ((v1 (value-of exp1 env)))
+        (let-exp (var exp1 body)
+          (let 
+            ( [ref (value-of-letdef exp1 env)])
             (value-of body
-              (extend-env var (newref v1) env))))
+              (extend-env var ref env))))    
         
         (proc-exp (var body)
           (proc-val (procedure var body env)))
@@ -189,7 +190,23 @@
 (define value-of-oprand
   (lambda (exp env)
     (cases expression exp
-      (var-exp (var) (apply-env env var))
+      (var-exp (var)
+        (let*
+          ( [ref (apply-env env var)]
+            [w (deref ref)])
+          (if (expval? w)
+            ref
+            (let ( [val (value-of-thunk w)])
+              (begin
+                (setref! ref val)
+                ref)))))
+    
+     (const-exp (num) 
+        (newref (num-val num)))
+
+      (proc-exp (var body)
+        (newref (proc-val (procedure var body env))))
+      
       (else 
         (newref
           (a-thunk exp env)))))
@@ -200,4 +217,21 @@
     (cases thunk th
       (a-thunk (exp1 env)
         (value-of exp1 env))))
+)
+
+; value-of-letdef : Exp * Env -> Ref
+(define value-of-letdef
+  (lambda (exp env)
+    (cases expression exp
+      (var-exp (var)  
+        (newref (deref (apply-env env var))))
+
+      (const-exp (num) 
+        (newref (num-val num)))
+
+      (proc-exp (var body)
+        (newref (proc-val (procedure var body env))))
+      
+      (else
+        (newref (a-thunk exp env)))))
 )

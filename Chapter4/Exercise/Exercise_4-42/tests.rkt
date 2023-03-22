@@ -113,17 +113,20 @@ in let times4 = (fix t4m)
 
 
       (gensym-test
-"let g = let count = 0 in proc(d) 
-                        let d = set count = -(count,-1)
-                        in count
-in -((g 11), (g 22))"
--1)
+        "let g =  let count = 0 
+                  in proc(d)
+                    let d = set count = -(count,-1)
+                    in begin
+                        d;
+                        count
+                       end
+        in -((g 11), (g 22))" -1)
 
       (even-odd-via-set "
 let x = 0
 in letrec even(d) = if zero?(x) then 1 
                                   else let d = set x = -(x,1)
-                                       in (odd d)
+                                       in (odd d) 
               odd(d)  = if zero?(x) then 0 
                                   else let d = set x = -(x,1)
                                        in (even d)

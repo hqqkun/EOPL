@@ -1,0 +1,6 @@
+#lang eopl
+
+; (value-of exp1 ρ σ0) = (l, σ1)
+; (value-of exp2 ρ σ1) = (val, σ2)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; (value-of (setref-exp exp1 exp2) ρ σ0) = (σ0(l), [l=val]σ2)
