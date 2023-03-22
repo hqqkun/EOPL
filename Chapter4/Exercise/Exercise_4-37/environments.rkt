@@ -2,7 +2,7 @@
 
 (require "data-structures.rkt")
 (require "store.rkt")
-(provide init-env empty-env extend-env apply-env)
+(provide init-env empty-env extend-env extend-env* apply-env)
 
 ;;;;;;;;;;;;;;;; initial environment ;;;;;;;;;;;;;;;;
 
@@ -59,3 +59,17 @@
        => (lambda (n)
             (+ n 1)))
       (else #f))))
+
+
+(define extend-env*
+  (lambda (vars refs saved-env)
+    (letrec
+      ( [E  (lambda (vars refs)
+              (if (null? vars)
+                saved-env
+                (extend-env
+                  (car vars)
+                  (car refs)
+                  (E (cdr vars) (cdr refs)))))])
+      (E vars refs)))
+)
