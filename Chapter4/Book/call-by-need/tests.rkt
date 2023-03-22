@@ -5,7 +5,11 @@
 
 (define test-list
     '(
-  
+      ;; test
+      (infinite "letrec infinite-loop (x) = (infinite-loop -(x,-1))
+            in  let f = proc (z) 11
+                in (f (infinite-loop 0))" 11)
+      
       ;; simple arithmetic
       (positive-const "11" 11)
       (negative-const "-33" -33)
@@ -84,11 +88,13 @@ in let times4 = (fix t4m)
  in letrec f(x) = if zero?(x) then 0 else -((f -(x,1)), m) in (f 4)"
         20)
       
-;      (fact-of-6  "letrec
-;  fact(x) = if zero?(x) then 1 else *(x, (fact sub1(x)))
-;in (fact 6)" 
-;                  720)
-      
+;; alas, no multiplication in this language.  Exercise: define
+;; multiplication as a letrec and then use it to define factorial.
+;;      (fact-of-6  "letrec
+;;  fact(x) = if zero?(x) then 1 else *(x, (fact sub1(x)))
+;;  in (fact 6)" 
+;;                  720)
+
       (HO-nested-letrecs
 "letrec even(odd)  = proc(x) if zero?(x) then 1 else (odd -(x,1))
    in letrec  odd(x)  = if zero?(x) then 0 else ((even odd) -(x,1))
@@ -98,6 +104,8 @@ in let times4 = (fix t4m)
       (begin-test-1
         "begin 1; 2; 3 end"
         3)
+
+      ;; extremely primitive testing for mutable variables
 
       (assignment-test-1 "let x = 17
                           in begin set x = 27; x end"
@@ -121,6 +129,8 @@ in letrec even(d) = if zero?(x) then 1
                                        in (even d)
    in let d = set x = 13 in (odd -99)" 1)
       
+     ;; even more primitive testing for mutable pairs
+
       (simple-mutpair-left-1 "let p = newpair(22,33) in left(p)" 22)
       (simple-mutpair-right-1 "let p = newpair(22,33) in right(p)" 33)
 
@@ -136,6 +146,8 @@ let p = newpair(22,33) in begin setright p = 77; right(p) end" 77)
 
       (simple-mutpair-setright-2 "
 let p = newpair(22,33) in begin setright p = 77; left(p) end" 22)
+
+
 
       (gensym-using-mutable-pair-left
 "let g = let count = newpair(0,0) 
@@ -156,83 +168,6 @@ in -((g 22), (g 22))"
               end
 in -((g 22), (g 22))"
 -1)
-      
-      ;; new for call-by-reference
-
-      (cbr-swap-1
-        "let swap = proc (x) proc (y)
-                      let temp = x
-                      in begin 
-                          set x = y;
-                          set y = temp
-                         end
-         in let a = 33
-         in let b = 44
-         in begin
-             ((swap a) b);
-             -(a,b)
-            end"
-        11)
-
-      (cbr-global-aliasing-1
-        "let p = proc (z) set z = 44
-         in let x = 33
-         in begin (p x); x end"
-        44)
-
-      (cbr-direct-aliasing-1
-        "let p = proc (x) proc (y)
-                   begin
-                    set x = 44;
-                    y
-                   end
-         in let b = 33
-         in ((p b) b)"
-        44)
-
-      (cbr-indirect-aliasing-1
-        ;; in this language, you can't return a reference.
-        "let p = proc (x) proc (y)
-                   begin
-                    set x = 44;
-                    y
-                   end
-         in let q = proc(z) z
-         in let b = 33
-         in ((p b) (q b))"
-        33)
-
-      (cbr-indirect-aliasing-2
-        ;; in this language, you can't return a reference.
-        "let p = proc (x) proc (y)
-                   begin
-                    set x = 44;
-                    y
-                   end
-         in let q = proc(z) z
-         in let b = 33
-         in ((p (q b)) b)"
-        33)
-
-      (cbr-sideeffect-a-passed-structure-1
-        "let f = proc (x) setleft x = -(left(x),-1)
-         in let p = newpair (44,newpair(55,66))
-         in begin
-              (f right(p));
-              left(right(p))
-            end"
-        56)
-
-      (cbr-example-for-book "
-let f = proc (x) set x = 44
-in let g = proc (y) (f y)
-in let z = 55
-in begin
-    (g z);
-    z
-  end"
-        44)
-
 
       )
 )

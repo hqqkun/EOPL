@@ -75,7 +75,16 @@
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (const-exp (num) (num-val num))
 
-        (var-exp (var) (deref (apply-env env var)))
+        (var-exp (var)
+          (let*
+            ( [ref (apply-env env var)]
+              [w (deref ref)])
+            (if (expval? w)
+              w
+              (let  ( [val (value-of-thunk w)])
+                (begin
+                  (setref! ref val)
+                  val)))))
 
         (diff-exp (exp1 exp2)
           (let ((val1 (value-of exp1 env))
@@ -183,5 +192,12 @@
       (var-exp (var) (apply-env env var))
       (else 
         (newref
-          (value-of exp env)))))
+          (a-thunk exp env)))))
+)
+
+(define value-of-thunk
+  (lambda (th)
+    (cases thunk th
+      (a-thunk (exp1 env)
+        (value-of exp1 env))))
 )
