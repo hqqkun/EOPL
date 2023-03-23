@@ -20,27 +20,6 @@
 
 (define the-grammar
   '((program (expression) a-program)
-    ;; Exercise 3.9 list operations
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (expression
-      ("emptylist") empty-list-exp)
-    
-    (expression
-      ("cons" "(" expression "," expression ")")
-      cons-exp)
-
-    (expression
-      ("car" "(" expression ")")
-      car-exp)
-    
-    (expression
-     ("cdr" "(" expression ")")
-      cdr-exp)
-
-    (expression
-     ("null?" "(" expression ")")
-      null?-exp)
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     (expression (number) const-exp)
     (expression

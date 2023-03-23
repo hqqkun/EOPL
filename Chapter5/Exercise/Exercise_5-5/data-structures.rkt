@@ -14,9 +14,36 @@
   (bool-val
     (boolean boolean?))
   (proc-val 
-    (proc proc?)))
+    (proc proc?))
+  (empty-val)
+  (pair-val
+    (first expval?)
+    (second expval?)))
 
 ;;; extractors:
+
+; ExpVal -> Bool
+; if expval is a empty list, then true
+(define expval->null?
+  (lambda (val)
+    (cases expval val
+      (empty-val () #t)
+      (else #f)))
+)
+
+(define expval->pair->first
+  (lambda (val)
+    (cases expval val
+      (pair-val (first _) first)
+      (else (expval-extractor-error 'pair val))))
+)
+
+(define expval->pair->second
+  (lambda (val)
+    (cases expval val
+      (pair-val (_ second) second)
+      (else (expval-extractor-error 'pair val))))
+)
 
 (define expval->num
   (lambda (v)
@@ -47,7 +74,22 @@
 (define identifier? symbol?)
 
 (define-datatype continuation continuation?
-  (end-cont)                 
+  (end-cont)
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (car-cont
+    (saved-cont continuation?)) 
+  (null-cont
+    (saved-cont continuation?))
+  (cdr-cont
+    (saved-cont continuation?))
+  (cons-1-cont
+    (exp2 expression?)
+    (saved-env environment?)
+    (saved-cont continuation?))
+  (cons-2-cont
+    (val1 expval?)
+    (saved-cont continuation?))
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (zero1-cont
     (saved-cont continuation?))
   (let-exp-cont

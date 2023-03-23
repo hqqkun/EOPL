@@ -31,6 +31,21 @@
 (define value-of/k
   (lambda (exp env cont)
     (cases expression exp
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (empty-list-exp () (apply-cont cont (empty-val)))
+      (car-exp (exp1)
+        (value-of/k exp1 env
+          (car-cont cont)))
+      (null?-exp (exp1)
+        (value-of/k exp1 env
+          (null-cont cont)))
+      (cdr-exp (exp1)
+        (value-of/k exp1 env
+          (cdr-cont cont)))
+      (cons-exp (exp1 exp2)
+        (value-of/k exp1 env
+          (cons-1-cont exp2 env cont)))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (const-exp (num) (apply-cont cont (num-val num)))
       (var-exp (var) (apply-cont cont (apply-env env var)))
       (proc-exp (var body)
@@ -62,6 +77,24 @@
 (define apply-cont
   (lambda (cont val)
     (cases continuation cont
+      ;; list
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (car-cont (saved-cont)
+        (apply-cont saved-cont
+          (expval->pair->first val)))
+      (null-cont (saved-cont)
+        (apply-cont saved-cont
+          (bool-val (expval->null? val))))
+      (cdr-cont (saved-cont)
+        (apply-cont saved-cont
+          (expval->pair->second val)))
+      (cons-1-cont (exp2 saved-env saved-cont)
+        (value-of/k exp2 saved-env
+          (cons-2-cont val saved-cont)))
+      (cons-2-cont (val1 saved-cont)
+        (apply-cont saved-cont
+          (pair-val val1 val)))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;
       (end-cont () 
         (begin
           (eopl:printf

@@ -34,24 +34,15 @@
   (lambda (ans correct-ans)
     (equal? ans (sloppy->expval correct-ans))))
 
-(define sloppy->expval
+(define sloppy->expval 
   (lambda (sloppy-val)
     (cond
       ((number? sloppy-val) (num-val sloppy-val))
       ((boolean? sloppy-val) (bool-val sloppy-val))
-      ((null? sloppy-val) (empty-val))
-      ((pair? sloppy-val) 
-        (let 
-          ( [f-val (sloppy->expval (car sloppy-val))]
-            [s-val (sloppy->expval (cdr sloppy-val))]
-          )
-          (pair-val f-val s-val)))
-      
       (else
-       (eopl:error 'sloppy->expval
-                   "Can't convert sloppy value to expval: ~s"
-                   sloppy-val))))
-)
+        (eopl:error 'sloppy->expval 
+                    "Can't convert sloppy value to expval: ~s"
+                    sloppy-val)))))
   
 ;; run-one : Sym -> ExpVal
 

@@ -5,22 +5,7 @@
 
 (define test-list
   '(
-    ;; cons test
-    (empty-list "emptylist" ())
-    (cons-list "cons(1, cons(2, emptylist))" (1 2))
-    (list-in-let "let x = 4
-                    in cons(x,
-                        cons(cons(-(x,1),
-                                  emptylist),
-                              emptylist))" (4 (3)))
-    (next-list "let x = cons(1, cons(2, emptylist)) in 
-                  cons(x, cons(x, emptylist))" ((1 2) (1 2)))
-    (car-of-list "let x = cons(1, cons(2, emptylist)) in 
-                  car(x)" 1)
-    (cdr-of-list "let x = cons(1, cons(2, emptylist)) in
-                  cdr(x)" (2))
-    (null?-list  "let x = cons(1, cons(2, emptylist)) in null?(x)" #f)
-    (null?-list-1 "let x = cons(1, cons(2, emptylist)) in null?(cdr(cdr(x)))" #t)
+
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)
