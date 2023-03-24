@@ -16,6 +16,7 @@
 
 (provide value-of-program value-of/k)
 
+(define instrument (make-parameter #t))
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
 ;; value-of-program : Program -> FinalAnswer
@@ -31,7 +32,11 @@
 (define value-of/k
   (lambda (exp env cont)
     (cases expression exp
-      (const-exp (num) (apply-cont cont (num-val num)))
+      (const-exp (num)
+        (when (instrument)
+          (eopl:printf "send value of ~s to continuation.~%" exp))
+        (apply-cont cont (num-val num)))
+      
       (var-exp (var) (apply-cont cont (apply-env env var)))
       (proc-exp (vars body)
         (apply-cont cont 
@@ -49,10 +54,22 @@
       (if-exp (exp1 exp2 exp3)
         (value-of/k exp1 env
           (if-test-cont exp2 exp3 env cont)))
+
       (diff-exp (exp1 exp2)
+        (when (instrument)
+          (eopl:printf "start working on first operand ~s.~%" exp1))
         (value-of/k exp1 env
-          (diff1-cont exp2 env cont)))        
-      (call-exp (rator rands) 
+          (diff1-cont exp2 env cont)))  
+
+      (mul-exp (exp1 exp2)
+        (when (instrument)
+          (eopl:printf "start working on first operand ~s.~%" exp1))
+        (value-of/k exp1 env
+          (mul1-cont exp2 env cont)))
+      
+      (call-exp (rator rands)
+        (when (instrument)
+          (eopl:printf "start working on function call ~%"))
         (value-of/k rator env
           (rator-cont rands env cont)))
   )))
@@ -80,13 +97,34 @@
             (value-of/k exp2 saved-env saved-cont)
             (value-of/k exp3 saved-env saved-cont)))
       (diff1-cont (exp2 saved-env saved-cont)
+         (when (instrument)
+          (eopl:printf "now start working on second operand ~s.~%" exp2))
         (value-of/k exp2
           saved-env (diff2-cont val saved-cont)))
+      
       (diff2-cont (val1 saved-cont)
-        (let ((num1 (expval->num val1))
-              (num2 (expval->num val)))
+        (let* ( (num1 (expval->num val1))
+                (num2 (expval->num val))
+                (ans (- num1 num2)))
           (apply-cont saved-cont
-            (num-val (- num1 num2)))))
+            (num-val ans))))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (mul1-cont (exp2 saved-env saved-cont)
+         (when (instrument)
+          (eopl:printf "now start working on second operand ~s.~%" exp2))
+        (value-of/k exp2
+          saved-env (mul2-cont val saved-cont)))
+      
+      (mul2-cont (val1 saved-cont)
+        (let* ( (num1 (expval->num val1))
+                (num2 (expval->num val))
+                (ans (* num1 num2)))
+          (when (instrument)
+            (eopl:printf "~s * ~s is ~s, send that to the continuation.~%"
+              num1 num2 ans))
+          (apply-cont saved-cont
+            (num-val ans))))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       
       (rator-cont (rands saved-env saved-cont)
         (let ((proc (expval->proc val)))
@@ -101,7 +139,7 @@
             (apply-procedure/k proc new-vals saved-cont)
             (value-of/k (car rands) saved-env 
               (rands-cont proc new-vals (cdr rands) saved-env saved-cont)))))
-    ))
+      ))
 )
 
 ;; apply-procedure/k : Proc * ExpVal * Cont -> FinalAnswer

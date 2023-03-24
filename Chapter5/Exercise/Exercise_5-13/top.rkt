@@ -20,5 +20,16 @@
   (lambda (string)
     (value-of-program (scan&parse string))))
 
-(define str "-(-(44,11),3)")
-(run str)
+(define fact-rec
+  "letrec 
+    fact(x) = if zero?(x) then 1 else *(x, (fact -(x, 1)))
+   in (fact 4)")
+
+(define fact-iter
+  "letrec fact-iter-acc(n, a) = 
+            if zero?(n) then a else
+            (fact-iter-acc -(n, 1) *(n, a))
+   in let fact-iter = proc(n) (fact-iter-acc n 1)
+      in (fact-iter 4)")
+  
+(run fact-iter)
