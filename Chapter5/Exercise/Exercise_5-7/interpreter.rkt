@@ -124,14 +124,3 @@
           '()
           vars (cdr exps) body env cont))))
 )
-
-; (define value-of-let/k
-;   (lambda (vars exps body env cont)
-;     (letrec
-;       ( [V  (lambda (ps rvars rexps cont)
-;               (if (null? rvars)
-;                 (value-of/k body (extend-env* ps env) cont)
-;                 (V ))
-;             )]))
-;   )
-; )
