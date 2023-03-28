@@ -68,8 +68,39 @@
         (begin
           (eopl:printf
             "End of computation.~%")
-          val))
-      ;; or (logged-print val)  ; if you use drscheme-init-cps.scm
+          (val-bounce val)))
+      (else (cont-bounce cont val))))
+)
+
+;; apply-procedure/k : Proc * ExpVal * Cont -> Bounce
+;; Page 152 and 155
+(define apply-procedure/k
+  (lambda (proc1 arg cont)
+    (cases proc proc1
+      (procedure (var body saved-env)
+        (value-of/k body
+          (extend-env var arg saved-env)
+          cont))))
+)
+
+;; trampoline : Bounce -> FinalAnswer
+(define trampoline 
+  (lambda (b)
+    (cases bounce b
+      (val-bounce (val) val)
+      (cont-bounce (cont val)
+        (trampoline 
+          (value-of-cont cont val)))))
+)
+
+; value-of-cont : Cont * ExpVal -> Bounce
+(define value-of-cont
+  (lambda (cont val)
+    (cases continuation cont
+      ;! end-cont should not be here.
+      (end-cont ()
+        (eopl:error "This should not happen~%"))
+      
       (zero1-cont (saved-cont)
         (apply-cont saved-cont
           (bool-val
@@ -94,26 +125,5 @@
           (rand-cont val saved-cont)))
       (rand-cont (val1 saved-cont)
         (let ((proc (expval->proc val1)))
-          (lambda ()
-            (apply-procedure/k proc val saved-cont))))
-      ))
-)
-
-;; apply-procedure/k : Proc * ExpVal * Cont -> Bounce
-;; Page 152 and 155
-(define apply-procedure/k
-  (lambda (proc1 arg cont)
-    (cases proc proc1
-      (procedure (var body saved-env)
-        (value-of/k body
-          (extend-env var arg saved-env)
-          cont))))
-)
-
-;; trampoline : Bounce -> FinalAnswer
-(define trampoline 
-  (lambda (bounce)
-    (if (expval? bounce)
-      bounce
-      (trampoline (bounce))))
+          (apply-procedure/k proc val saved-cont)))))
 )
