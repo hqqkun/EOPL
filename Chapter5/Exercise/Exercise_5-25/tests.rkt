@@ -5,13 +5,11 @@
 
 (define test-list
   '(
-
     (multiargs-0 "let f = proc(x, y) -(x, y) in (f 1 -2)" 3)
     (multiargs-1 "let f = proc(fn, x) (fn x)
                   in let g = proc(x) -(x, 1)
                      in let val = 12
                         in (f g val)" 11)
-    
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)

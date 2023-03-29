@@ -18,6 +18,7 @@
 (define cont  'uninitialized)
 (define val   'uninitialized)
 (define proc1 'uninitialized) ; we've already used "proc".
+(define args  'uninitialized)
 
 ;; value-of-program : Program -> FinalAnswer
 (define value-of-program 
@@ -40,11 +41,11 @@
       (var-exp (var)
         (set! val (apply-env env var))
         (apply-cont))
-      (proc-exp (var body)
-        (set! val (proc-val (procedure var body env)))
+      (proc-exp (vars body)
+        (set! val (proc-val (procedure vars body env)))
         (apply-cont))
-      (letrec-exp (p-name b-var p-body letrec-body)
-        (set! env (extend-env-rec p-name b-var p-body env))
+      (letrec-exp (p-name b-vars p-body letrec-body)
+        (set! env (extend-env-rec p-name b-vars p-body env))
         (set! exp letrec-body)
         (value-of/k))
       (zero?-exp (exp1)
@@ -106,15 +107,37 @@
           (set! val (num-val (- num1 num2)))
           (set! cont saved-cont)
           (apply-cont)))
-      (rator-cont (rand saved-env saved-cont)
-        (set! exp rand)
-        (set! cont (rand-cont val saved-cont))
-        (set! env saved-env)
-        (value-of/k))
-      (rand-cont (val1 saved-cont)
-        (set! proc1 (expval->proc val1))
-        (set! cont saved-cont)
-        (apply-procedure/k))
+      
+      ;; Exercise 5-25
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (rator-cont (rands saved-env saved-cont)
+        (let ((proc (expval->proc val)))
+          (if (null? rands)
+            (begin
+              (set! proc1 proc)
+              (set! args '())
+              (set! cont saved-cont)
+              (apply-procedure/k))
+            (begin
+              (set! exp (car rands))
+              (set! cont (rands-cont proc '() (cdr rands) saved-env saved-cont))
+              (set! env saved-env)
+              (value-of/k)))))
+      
+      (rands-cont (proc vals rands saved-env saved-cont)
+        (let ([new-vals (cons val vals)])
+          (if (null? rands)
+            (begin
+              (set! proc1 proc)
+              (set! args new-vals)
+              (set! cont saved-cont)
+              (apply-procedure/k))
+            (begin
+              (set! exp (car rands))
+              (set! env saved-env)
+              (set! cont (rands-cont proc new-vals (cdr rands) saved-env saved-cont))
+              (value-of/k)))))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ))
 )
 
@@ -122,8 +145,9 @@
 (define apply-procedure/k
   (lambda ()
     (cases proc proc1
-      (procedure (var body saved-env)
+      (procedure (vars body saved-env)
         (set! exp body)
-        (set! env (extend-env var val saved-env))
+        (set! args (reverse args))
+        (set! env (extend-env* vars args saved-env))
         (value-of/k))))
 )
