@@ -93,6 +93,124 @@ in letrec f(x) = if zero?(x) then 0 else -((f -(x,1)), m) in (f 4)"
 "letrec even(odd)  = proc(x) if zero?(x) then 1 else (odd -(x,1))
   in letrec  odd(x)  = if zero?(x) then 0 else ((even odd) -(x,1))
   in (odd 13)" 1)
+
+    (lists-1
+      "list(2, 3, 4)"
+      (2 3 4))
+
+    (car-1
+      "car(list(2,3,4))"
+      2)
+      
+    (cdr-1
+      "cdr(list(2,3,4))"
+      (3 4))
+
+    ;; tests for try/catch
+    (simple-succeed
+      "try 33 
+       catch (m) 44"
+      33)
+
+    (dont-run-handler-til-failure
+      "try 33 
+       catch (m) foo"
+      33)
+    (simple-failure
+      "try -(1, raise 44) catch (m) m"
+      44)
+
+    (uncaught-exception
+      "-(22, raise 13)"
+      error)
+
+    (exceptions-have-dynamic-scope-1 
+      "let f = proc (x) -(x, -(raise 99, 1))   % no handler in lexical scope!
+       in try (f 33) 
+          catch (m) 44"
+      44)
     
-    )
+    (handler-in-non-tail-recursive-position 
+      "let f = proc (x) -(x, -(raise 99, 1))   % no handler in lexical scope!
+       in -(try (f 33) 
+            catch (m) -(m,55), 
+            1)"
+      43)
+
+    (propagate-error-1
+      "try try -(raise 23, 11)
+           catch (m) -(raise 22,1) 
+       catch (m) m"
+      22)
+    
+    (propagate-error-2
+      "let f = proc (x) -(1, raise 99)
+       in
+          try
+             try (f 44)
+             catch (exc) (f 23)
+          catch (exc) 11"
+          
+      11)
+
+    (text-example-0.1
+      "let index 
+            = proc (n)
+               letrec inner2 (lst)
+                 % find position of n in lst else raise exception 
+                  = if null?(lst) then lst       
+                    else if zero?(-(car(lst),n)) then lst
+                    else let v = (inner2 cdr(lst))
+                         in v
+               in proc (lst)
+                   try (inner2 lst)
+                   catch (x) -1
+       in ((index 3) list(2, 3, 4))"
+      (3 4))
+
+    (text-example-0.2
+      "let index 
+            = proc (n)
+               letrec inner2 (lst)
+                 % find position of n in lst else raise exception 
+                  = if null?(lst) then lst       
+                    else if zero?(-(car(lst),n)) then lst
+                    else let v = (inner2 cdr(lst))
+                         in v
+               in proc (lst)
+                   try (inner2 lst)
+                   catch (x) -1
+       in ((index 3) list(2, 3, 4))"
+      (3 4))
+
+   (text-example-1.1
+      "let index 
+            = proc (n)
+               letrec inner2 (lst)
+                 % find position of n in lst else raise error
+                 % exception 
+                  = if null?(lst) then raise 99       
+                    else if zero?(-(car(lst),n)) then 0
+                    else let v = (inner2 cdr(lst))
+                         in -(v,-1)
+               in proc (lst)
+                   try (inner2 lst)
+                   catch (x) -1
+       in ((index 2) list(2, 3, 4))"
+      0)
+
+   (text-example-1.2
+      "let index 
+            = proc (n)
+               letrec inner2 (lst)
+                 % find position of n in lst else raise error
+                 % exception 
+                  = if null?(lst) then raise 99       
+                    else if zero?(-(car(lst),n)) then 0
+                    else -((inner2 cdr(lst)), -1)
+               in proc (lst)
+                   try (inner2 lst)
+                   catch (x) -1
+       in ((index 5) list(2, 3))"
+      -1))
 )

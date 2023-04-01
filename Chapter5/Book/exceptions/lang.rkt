@@ -21,14 +21,39 @@
 (define the-grammar
   '((program (expression) a-program)
 
+    ; new staff
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (expression
+      ("try" expression "catch" "(" identifier ")" expression)
+      try-exp)
+
+    (expression
+      ("raise" expression)
+      raise-exp)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    ;; list
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (expression
+      ("list" "(" (separated-list number ",") ")")
+      const-list-exp)
+    (expression
+      (unary-op "(" expression ")")
+      unop-exp)
+    (unary-op 
+      ("null?") null?-unop)
+    (unary-op 
+      ("car") car-unop)
+    (unary-op 
+      ("cdr") cdr-unop)
+    (unary-op
+      ("zero?") zero?-unop)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     (expression (number) const-exp)
     (expression
       ("-" "(" expression "," expression ")")
       diff-exp)
-    
-    (expression
-      ("zero?" "(" expression ")")
-      zero?-exp)
 
     (expression
       ("if" expression "then" expression "else" expression)
