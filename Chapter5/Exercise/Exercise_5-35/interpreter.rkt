@@ -18,12 +18,16 @@
 
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 
+; ! For implementing easy, I use global variable.
+(define try-cont-lst 'uninitialized)
+
 ;; value-of-program : Program -> FinalAnswer
 ;; Page: 143 and 154
 (define value-of-program 
   (lambda (pgm)
     (cases program pgm
       (a-program (exp1)
+        (set! try-cont-lst '())
         (value-of/k exp1 (init-env) (end-cont))))))  
 
 ;; value-of/k : Exp * Env * Cont -> FinalAnswer
@@ -34,11 +38,12 @@
       ;; new staff
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (try-exp (exp1 var handler-exp)
-        (value-of/k exp1 env
-          (try-cont var handler-exp env cont)))
+        (let ([new-cont (try-cont var handler-exp env cont)])
+          (set! try-cont-lst (cons new-cont try-cont-lst))
+          (value-of/k exp1 env new-cont)))
       (raise-exp (exp1)
         (value-of/k exp1 env
-          (raise1-cont cont)))
+          (raise1-cont)))
       (unop-exp (unop exp1)
         (value-of/k exp1 env
           (unop-arg-cont unop cont)))
@@ -78,8 +83,8 @@
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (try-cont (var handler-exp saved-env saved-cont)
         (apply-cont saved-cont val))
-      (raise1-cont (saved-cont)
-        (apply-handler val saved-cont))
+      (raise1-cont ()
+        (apply-handler val))
       (unop-arg-cont (unop saved-cont)
         (apply-cont saved-cont
           (apply-unop unop val)))
@@ -124,36 +129,22 @@
           cont))))
 )
 
-
-(define apply-handler 
-  (lambda (val cont)
-    (cases continuation cont
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      (try-cont (var handler-exp saved-env saved-cont)
-        (value-of/k handler-exp
-          (extend-env var val saved-env)
-          saved-cont))
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      (end-cont () 
-        (eopl:error 
-          'apply-handler "uncaught exception!"))
-      (let-exp-cont (var body saved-env saved-cont)
-        (apply-handler val saved-cont))
-      (if-test-cont (exp2 exp3 saved-env saved-cont)
-        (apply-handler val saved-cont))
-      (diff1-cont (exp2 saved-env saved-cont)
-        (apply-handler val saved-cont))
-      (diff2-cont (val1 saved-cont)
-        (apply-handler val saved-cont))
-      (rator-cont (rand saved-env saved-cont)
-        (apply-handler val saved-cont))
-      (rand-cont (val1 saved-cont)
-        (apply-handler val saved-cont))
-      (raise1-cont (saved-cont)
-        (apply-handler val saved-cont))
-      (unop-arg-cont (unop saved-cont)
-        (apply-handler val saved-cont))
-      ))
+(define apply-handler
+  (lambda (val)
+    (if (null? try-cont-lst)
+      (eopl:error 
+          'apply-handler "uncaught exception!")
+      (let
+        ( [cont (car try-cont-lst)])
+        (set! try-cont-lst (cdr try-cont-lst))
+        (cases continuation cont
+          (try-cont (var handler-exp saved-env saved-cont)
+            (value-of/k handler-exp
+              (extend-env var val saved-env)
+              saved-cont))
+          (else 
+            (eopl:error 
+              'apply-handler "something must go wrong!"))))))
 )
 
 ; apply-unop : UnOp * ExpVal -> ExpVal

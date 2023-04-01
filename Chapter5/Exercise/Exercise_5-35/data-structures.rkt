@@ -86,8 +86,7 @@
    (handler-exp expression?)
    (env environment?)
    (cont continuation?))
-  (raise1-cont
-   (saved-cont continuation?))
+  (raise1-cont)
   (unop-arg-cont
    (unop unary-op?)
    (saved-cont continuation?))
