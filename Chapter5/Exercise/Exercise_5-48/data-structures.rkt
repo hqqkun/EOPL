@@ -216,3 +216,16 @@
        (symbol? (car p))
        ((list-of symbol?) (car p)))))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Thread
+
+(define-datatype thread thread?
+  (cont-thread
+    (saved-cont continuation?)
+    (val expval?))
+  (proc-thread
+    (proc1 proc?)
+    (arg expval?)
+    (saved-cont continuation?))
+)
