@@ -22,7 +22,7 @@
         (value-of/k
           exp1
           (init-env)
-          (end-main-thread-cont)))))
+          (list (end-main-thread-frame))))))
 )
 
 ;; value-of/k : Exp * Env * Cont -> FinalAnswer
@@ -40,20 +40,17 @@
         (apply-cont cont (deref (apply-env env var))))
       (diff-exp (exp1 exp2)
         (value-of/k exp1 env
-          (diff1-cont exp2 env cont)))
-      (equal-exp (exp1 exp2)
-        (value-of/k exp1 env
-          (equal1-cont exp2 env cont)))
+          (cons (diff1-frame exp2 env) cont)))
       (if-exp (exp1 exp2 exp3)
         (value-of/k exp1 env
-          (if-test-cont exp2 exp3 env cont)))
+         (cons (if-test-frame exp2 exp3 env) cont)))
       (proc-exp (var body)
         (apply-cont cont
           (proc-val
             (procedure var body env))))
       (call-exp (rator rand)
         (value-of/k rator env
-          (rator-cont rand env cont)))
+          (cons (rator-frame rand env) cont)))
       
       ;! implemented like a macro!
       (let-exp (var exp1 body)
@@ -78,22 +75,22 @@
           cont))
       (set-exp (id exp)
         (value-of/k exp env
-          (set-rhs-cont (apply-env env id) cont)))
+          (cons (set-rhs-frame (apply-env env id)) cont)))
       (spawn-exp (exp)
         (value-of/k exp env
-          (spawn-cont cont)))
+         (cons (spawn-frame) cont)))
       (mutex-exp ()
         (apply-cont cont
           (mutex-val (new-mutex))))
       (wait-exp (exp)
         (value-of/k exp env
-          (wait-cont cont)))
+         (cons (wait-frame) cont)))
       (signal-exp (exp)
         (value-of/k exp env
-          (signal-cont cont)))
+         (cons (signal-frame) cont)))
       (unop-exp (unop1 exp)
         (value-of/k exp env
-          (unop-arg-cont unop1 cont)))
+         (cons (unop-arg-frame unop1) cont)))
       (yield-exp ()
         (place-on-ready-queue! 
           (lambda ()
@@ -112,64 +109,56 @@
         (run-next-thread))
       (begin
         (decrement-timer!)
-        (cases continuation cont
-          (end-main-thread-cont ()
-            (set-final-answer! val)
-            (run-next-thread))
-          
-          (end-subthread-cont ()
-            (run-next-thread))
-          (equal1-cont (exp2 saved-env saved-cont)
-            (value-of/k exp2 saved-env
-              (equal2-cont val saved-cont)))
-          (equal2-cont (val1 saved-cont)
-            (let
-              ( [num1 (expval->num val1)]
-                [num2 (expval->num val)])
-              (apply-cont saved-cont (bool-val (= num1 num2)))))
-          (diff1-cont (exp2 saved-env saved-cont)
-            (value-of/k exp2 saved-env
-              (diff2-cont val saved-cont)))
-          (diff2-cont (val1 saved-cont)
-            (let 
-              ( [n1 (expval->num val1)]
-                [n2 (expval->num val)])
-              (apply-cont saved-cont
-                (num-val (- n1 n2)))))
-          (if-test-cont (exp2 exp3 env cont)
-            (if (expval->bool val)
-              (value-of/k exp2 env cont)
-              (value-of/k exp3 env cont)))
-            (rator-cont (rand saved-env saved-cont)
+        (let
+          ( [frame1 (car cont)]
+            [saved-cont (cdr cont)])
+          (cases frame frame1
+            (end-main-thread-frame ()
+                (set-final-answer! val)
+                (run-next-thread))
+            (end-subthread-frame ()
+              (run-next-thread))
+            (if-test-frame (exp2 exp3 saved-env)
+              (if (expval->bool val)
+                (value-of/k exp2 saved-env saved-cont)
+                (value-of/k exp3 saved-env saved-cont)))           
+            (diff1-frame (exp2 saved-env)
+              (value-of/k exp2 saved-env
+                (cons (diff2-frame val) saved-cont)))           
+            (diff2-frame (val1)
+              (let ([num1 (expval->num val1)]
+                    [num2 (expval->num val)])
+                (apply-cont saved-cont
+                  (num-val (- num1 num2)))))           
+            (rator-frame (rand saved-env)
               (value-of/k rand saved-env
-                (rand-cont val saved-cont)))
-            (rand-cont (val1 saved-cont)
-              (let ((proc (expval->proc val1)))
+                (cons (rand-frame val) saved-cont)))
+            (rand-frame (val1)
+              (let ([proc (expval->proc val1)])
                 (apply-procedure/k proc val saved-cont)))
-            (set-rhs-cont (loc cont)
+            (set-rhs-frame (loc)
               (begin
                 (setref! loc val)
-                (apply-cont cont (num-val 26))))
-            (spawn-cont (saved-cont)
+                (apply-cont saved-cont (num-val 26))))
+            (spawn-frame ()
               (let ([proc1 (expval->proc val)])
                 (place-on-ready-queue!
                   (lambda ()
                     (apply-procedure/k proc1
-                      (num-val 28) (end-subthread-cont))))
+                      (num-val 28) (list (end-subthread-frame)))))
                 (apply-cont saved-cont (num-val 73))))
-            (wait-cont (saved-cont)
+            (wait-frame ()
               (let ([m (expval->mutex val)])
                 (wait-for-mutex m
                   (lambda ()
                     (apply-cont saved-cont (num-val 52))))))
-            (signal-cont (saved-cont)
+            (signal-frame ()
               (signal-mutex
                 (expval->mutex val)
                 (lambda () (apply-cont saved-cont (num-val 53)))))
-            (unop-arg-cont (unop1 cont)
-              (apply-unop unop1 val cont))
-          ))
-    ))
+            (unop-arg-frame (unop1)
+              (apply-unop unop1 val saved-cont)))))
+  ))
 )
 
 (define apply-procedure/k

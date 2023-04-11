@@ -31,10 +31,6 @@
     (expression
      ("-" "(" expression "," expression ")")
      diff-exp)
-    
-    (expression
-      ("=" "(" expression "," expression ")")
-      equal-exp)
 
     (expression
      ("if" expression "then" expression "else" expression)
@@ -98,9 +94,8 @@
     (unop ("null?") null?-unop)
     (unop ("zero?") zero?-unop)
     (unop ("print") print-unop)
-    
-    )
-)
+
+    ))
 
 ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
 

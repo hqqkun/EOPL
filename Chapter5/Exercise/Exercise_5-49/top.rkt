@@ -53,39 +53,5 @@
 
 
 (stop-after-first-error #t)
-; (run-all 5)
-; (run-one 1000 'safe-ctr)
-
-(define safe-ctr
-        "let mut1 = mutex() in
-         let mut2 = mutex() in 
-         let mut3 = mutex() in 
-         let mut =  mutex() in
-         let x = 0 in 
-         let incr_x = 
-          proc(id)
-            proc(dummy)
-              begin
-                wait(mut);
-                set x = -(x,-1);
-                print(x);
-                signal(mut);
-                if =(id, 100) then signal(mut1) 
-                else if =(id, 200) then signal(mut2)
-                else signal(mut3)
-              end
-         in begin
-              spawn((incr_x 100));
-              spawn((incr_x 200));
-              spawn((incr_x 300))
-              wait(mut1);
-              wait(mut2);
-              wait(mut3);
-              wait(mut1);
-              wait(mut2);
-              wait(mut3);
-            end
-          "
-)
-
-(run 1000 safe-ctr)
+(run-all 5)
+; (run-one 1000 'producer-consumer)

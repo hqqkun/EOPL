@@ -85,48 +85,31 @@
 ;;;;;;;;;;;;;;;; continuations ;;;;;;;;;;;;;;;;
 
 
-  (define-datatype continuation continuation?
+(define-datatype frame frame?
+  (end-main-thread-frame)           
+  (end-subthread-frame)
 
-    (end-main-thread-cont)           
-    (end-subthread-cont)
-    (equal1-cont                       ; cont[(- [] (value-of e2 env))]
-      (exp2 expression?)
-      (env environment?)
-      (cont continuation?))
-    (equal2-cont                         ; cont[(- val1 [])]
-      (val1 expval?)
-      (cont continuation?))
-    (diff1-cont                       ; cont[(- [] (value-of e2 env))]
-      (exp2 expression?)
-      (env environment?)
-      (cont continuation?))
-    (diff2-cont                         ; cont[(- val1 [])]
-      (val1 expval?)
-      (cont continuation?))
-    (if-test-cont
-      (exp2 expression?)
-      (exp3 expression?)
-      (env environment?)
-      (cont continuation?))
-    (rator-cont            ; cont[(apply-proc [] (value-of rand env))]
-      (rand expression?)
-      (env environment?)
-      (cont continuation?))
-    (rand-cont                          ; cont[(apply-proc val1 [])]
-      (val1 expval?)
-      (cont continuation?))
-    (set-rhs-cont
-      (loc reference?)
-      (cont continuation?))
-    (spawn-cont 
-      (saved-cont continuation?))
-    (wait-cont 
-      (saved-cont continuation?))
-    (signal-cont 
-      (saved-cont continuation?))
-    (unop-arg-cont
-      (unop1 unop?)
-      (cont continuation?))
+  (diff1-frame                       ; cont[(- [] (value-of e2 env))]
+    (exp2 expression?)
+    (env environment?))
+  (diff2-frame                         ; cont[(- val1 [])]
+    (val1 expval?))
+  (if-test-frame
+    (exp2 expression?)
+    (exp3 expression?)
+    (env environment?))
+  (rator-frame            ; cont[(apply-proc [] (value-of rand env))]
+    (rand expression?)
+    (env environment?))
+  (rand-frame                         ; cont[(apply-proc val1 [])]
+    (val1 expval?))
+  (set-rhs-frame
+    (loc reference?))
+  (spawn-frame)
+  (wait-frame)
+  (signal-frame)
+  (unop-arg-frame
+    (unop1 unop?))
 )
 
 ;;;;;;;;;;;;;;;; environments ;;;;;;;;;;;;;;;;
