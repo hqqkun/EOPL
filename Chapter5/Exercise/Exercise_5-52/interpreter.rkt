@@ -41,6 +41,9 @@
       (diff-exp (exp1 exp2)
         (value-of/k exp1 env
           (diff1-cont exp2 env cont)))
+      (equal-exp (exp1 exp2)
+        (value-of/k exp1 env
+          (equal1-cont exp2 env cont)))
       (if-exp (exp1 exp2 exp3)
         (value-of/k exp1 env
           (if-test-cont exp2 exp3 env cont)))
@@ -125,6 +128,15 @@
                 [n2 (expval->num val)])
               (apply-cont saved-cont
                 (num-val (- n1 n2)))))
+          (equal1-cont (exp2 saved-env saved-cont)
+            (value-of/k exp2 saved-env
+              (equal2-cont val saved-cont)))
+          (equal2-cont (val1 saved-cont)
+            (let 
+              ( [n1 (expval->num val1)]
+                [n2 (expval->num val)])
+              (apply-cont saved-cont
+                (bool-val (= n1 n2)))))
           (if-test-cont (exp2 exp3 env cont)
             (if (expval->bool val)
               (value-of/k exp2 env cont)

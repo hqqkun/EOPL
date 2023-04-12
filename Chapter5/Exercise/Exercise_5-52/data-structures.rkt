@@ -89,7 +89,13 @@
 
     (end-main-thread-cont)           
     (end-subthread-cont)
-
+    (equal1-cont
+      (exp2 expression?)
+      (env environment?)
+      (cont continuation?))
+    (equal2-cont
+      (val1 expval?)
+      (cont continuation?))
     (diff1-cont                       ; cont[(- [] (value-of e2 env))]
       (exp2 expression?)
       (env environment?)
