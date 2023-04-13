@@ -7,7 +7,7 @@
 
 (provide initialize-scheduler! set-final-answer!
   time-expired? decrement-timer! place-on-ready-queue!
-  run-next-thread)
+  run-next-thread get-next-thread-id)
 
 
 ;;;;;;;;;;;;;;;; the state ;;;;;;;;;;;;;;;;
@@ -20,13 +20,17 @@
 (define the-max-time-slice    'uninitialized)
 (define the-time-remaining    'uninitialized)
 
+; Exercise 5-53
+(define next-thread-id 'uninitialized)
+
 ;; initialize-scheduler! : Int -> Unspecified
 (define initialize-scheduler!
   (lambda (ticks)
     (set! the-ready-queue (empty-queue))
     (set! the-final-answer 'uninitialized)
     (set! the-max-time-slice ticks)
-    (set! the-time-remaining the-max-time-slice))
+    (set! the-time-remaining the-max-time-slice)
+    (set! next-thread-id 1))
 )
 
 ; th = thread
@@ -64,4 +68,11 @@
   (lambda ()
     (set! the-time-remaining
       (- the-time-remaining 1)))
+)
+
+(define get-next-thread-id
+  (lambda ()
+    (let ([id next-thread-id])
+      (set! next-thread-id (+ next-thread-id 1))
+      id))
 )

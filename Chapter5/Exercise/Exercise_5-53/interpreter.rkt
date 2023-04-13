@@ -10,7 +10,7 @@
 (provide value-of-program trace-interp)
 
 (define trace-interp (make-parameter #f))
-
+(define trace-thread-id (make-parameter #t))
 ;;;;;;;;;;;;;;;; the interpreter ;;;;;;;;;;;;;;;;
 ;; value-of-program : Int * Program -> ExpVal
 (define value-of-program
@@ -140,12 +140,16 @@
                 (setref! loc val)
                 (apply-cont cont (num-val 26))))
             (spawn-cont (saved-cont)
-              (let ([proc1 (expval->proc val)])
+              (let 
+                ( [proc1 (expval->proc val)]
+                  [id (get-next-thread-id)])
+                (when (trace-thread-id)
+                  (eopl:printf "spawn : child id = ~a~%" id))
                 (place-on-ready-queue!
                   (lambda ()
                     (apply-procedure/k proc1
-                      (num-val 28) (end-subthread-cont))))
-                (apply-cont saved-cont (num-val 73))))
+                      (num-val id) (end-subthread-cont))))
+                (apply-cont saved-cont (num-val id))))
             (wait-cont (saved-cont)
               (let ([m (expval->mutex val)])
                 (wait-for-mutex m
