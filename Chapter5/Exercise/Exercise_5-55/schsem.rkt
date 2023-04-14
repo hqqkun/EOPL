@@ -33,7 +33,9 @@
     (set! the-time-remaining the-max-time-slice)
     (set! current-thread-info (a-thread-info 0 -1))
     (set! next-thread-id 1)
-    (set! the-mutex-queue '()))
+    (set! the-mutex-queue '())
+    (set! message-wait-queue '())
+    (set! messages '()))
 )
 
 ; th = thread
@@ -209,3 +211,50 @@
                   (place-on-ready-queue! first-waiting-th)))))
           (apply-thread th)))))    
 )
+
+
+
+;; Exercise 5-55
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define message-wait-queue 'uninitialized)
+(define messages 'uninitialized)
+(define send-to-thread
+  (lambda (id val)
+    (letrec
+      ( [S  (lambda (lst)
+              (cond
+                ((null? lst) '())
+                ((eq? id (get-id-from-thread (car lst)))
+                  (place-on-ready-queue! (car lst)) (cdr lst))
+                (else (cons (car lst) (S (cdr lst))))))])
+      (set! message-wait-queue (S message-wait-queue))
+      (set! messages (enqueue messages (cons id val)))))
+)
+
+;; find if messages contains message sending to it.
+;; if no, block this thread by adding itself to `message-wait-queue`
+(define recv-message
+  (lambda (id th)
+    (letrec
+      ( [find #f]
+        [R  (lambda (lst)
+              (cond
+                ((null? lst) 
+                  (set! message-wait-queue (enqueue message-wait-queue
+                    (cases thread th
+                      (a-thread (_ th-info)
+                        (a-thread 
+                          (lambda () (recv-message id th))
+                          th-info))))) '())
+                ((eq? id (caar lst))
+                  (eopl:printf "receive ~a~%" (expval->num (cdar lst)))
+                  (set! find #t)
+                  (cdr lst))
+                (else (cons (car lst) (R (cdr lst))))))])
+      (set! messages (R messages))
+      (if find
+        (apply-thread th)
+        (run-next-thread))))
+)
+    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
