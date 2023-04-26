@@ -8,37 +8,51 @@
 (provide value-of-program value-of/k)
 
 
+
+;; register
+(define exp 'uninitialized)
+(define env 'uninitialized)
+(define cont 'uninitialized)
+(define val 'uninitialized)
+(define proc1 'uninitialized)
+(define args 'uninitialized)
+
+
 (define value-of-program
   (lambda (pgm)
     (cases cps-out-program pgm
       (cps-a-program (exp1)
-        (value-of/k exp1 (init-env) (end-cont)))))
+        (set! exp exp1)
+        (set! env (init-env))
+        (set! cont (end-cont))
+        (value-of/k))))
 )
 
 (define value-of/k 
-  (lambda (exp env cont)
+  (lambda ()
     (cases tfexp exp
       (simple-exp->exp (simple)
-        (apply-cont cont
-          (value-of-simple-exp simple env)))
+        (set! val (value-of-simple-exp simple env))
+        (apply-cont))
       (cps-let-exp (var rhs body)
-        (let ([val (value-of-simple-exp rhs env)])
-          (value-of/k body
-            (extend-env* (list var) (list val) env)
-            cont)))
+        (set! val (value-of-simple-exp rhs env))
+        (set! env (extend-env* (list var) (list val) env))
+        (set! exp body)
+        (value-of/k))
       (cps-letrec-exp (p-names b-varss p-bodies letrec-body)
-        (value-of/k letrec-body
-          (extend-env-rec** p-names b-varss p-bodies env)
-          cont))
+        (set! exp letrec-body)
+        (set! env (extend-env-rec** p-names b-varss p-bodies env))
+        (value-of/k))
       (cps-if-exp (simple1 body1 body2)
-        (if (expval->bool (value-of-simple-exp simple1 env))
-          (value-of/k body1 env cont)
-          (value-of/k body2 env cont)))
+        (set! val (value-of-simple-exp simple1 env))
+        (if (expval->bool val)
+          (set! exp body1)
+          (set! exp body2))
+        (value-of/k))
       (cps-call-exp (rator rands)
-        (let
-          ( [rator-proc (expval->proc (value-of-simple-exp rator env))]
-            [rand-vals (map (lambda (simple) (value-of-simple-exp simple env)) rands)])
-          (apply-procedure/k rator-proc rand-vals cont)))
+        (set! proc1 (expval->proc (value-of-simple-exp rator env)))
+        (set! args (map (lambda (simple) (value-of-simple-exp simple env)) rands))
+        (apply-procedure/k))
 
     ))
 )
@@ -71,12 +85,12 @@
 
 
 (define apply-procedure/k
-  (lambda (proc1 args cont)
+  (lambda ()
     (cases proc proc1
       (procedure (vars body saved-env)
-        (value-of/k body
-          (extend-env* vars args saved-env)
-          cont))))
+        (set! exp body)
+        (set! env (extend-env* vars args saved-env))
+        (value-of/k))))
 )
 
 (define reduce
@@ -88,7 +102,7 @@
 
 
 (define apply-cont
-  (lambda (cont val)
+  (lambda ()
     (cases continuation cont
       (end-cont ()
         (begin
@@ -96,3 +110,13 @@
             "End of computation.~%")
           val))))
 )
+
+
+(define str "let p = proc(x y) +(x, y, 15) in (p 1 2)")
+(define run
+  (lambda (str)
+    (display 
+      (value-of-program (cps-out-scan&parse str))))
+)
+
+(run str)

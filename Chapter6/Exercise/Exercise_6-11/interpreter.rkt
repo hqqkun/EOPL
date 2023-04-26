@@ -63,7 +63,7 @@
           (bool-val (zero? num1))))
       (cps-sum-exp (exps)
         (let
-          ( [nums (map (lambda (exp) (value-of-simple-exp exp env)) exps)])
+          ( [nums (map (lambda (exp) (expval->num (value-of-simple-exp exp env))) exps)])
           (num-val (reduce + nums))))
       ))
 )
