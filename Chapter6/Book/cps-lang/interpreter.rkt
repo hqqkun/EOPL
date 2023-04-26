@@ -64,7 +64,7 @@
       (cps-sum-exp (exps)
         (let
           ( [nums (map (lambda (exp) (expval->num (value-of-simple-exp exp env))) exps)])
-          (num-val (reduce + nums))))
+          (num-val (add-reduce nums))))
       ))
 )
 
@@ -77,6 +77,14 @@
         (value-of/k body
           (extend-env* vars args saved-env)
           cont))))
+)
+
+(define add-reduce
+  (lambda (nums)
+    (let loop ([nums nums] [sum 0])
+      (if (null? nums)
+        sum
+        (loop (cdr nums) (+ sum (car nums))))))
 )
 
 (define reduce
