@@ -47,7 +47,7 @@
   (lambda (exp env)
     (cases simple-expression exp
       (cps-list-exp (exps)
-        (list-val (map value-of-simple-exp exps)))
+        (list-val (map (lambda (exp) (value-of-simple-exp exp env)) exps)))
       (cps-const-exp (num)
         (num-val num))
       (cps-var-exp (var)

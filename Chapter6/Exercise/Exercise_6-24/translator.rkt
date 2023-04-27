@@ -22,6 +22,8 @@
 (define cps-of-exp
   (lambda (exp cont)
     (cases expression exp
+      (list-exp (exps)
+        (cps-of-list-exp exps cont))
       (const-exp (num)
         (make-send-to-cont cont (cps-const-exp num)))
       (var-exp (var)
@@ -76,6 +78,16 @@
           (car new-rands)
           (append (cdr new-rands) (list k-exp))))))
 )
+
+(define cps-of-list-exp
+  (lambda (exps k-exp)
+    (cps-of-exps exps
+      (lambda (new-rands)
+        (make-send-to-cont k-exp
+          (cps-list-exp new-rands)))))
+)
+
+
 
 (define cps-of-sum-exp
   (lambda (exps k-exp)

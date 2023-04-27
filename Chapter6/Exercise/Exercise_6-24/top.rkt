@@ -75,5 +75,5 @@
               (run (cadr test))))
         (else (eopl:error 'run-one "no such test: ~s" test-name))))))
 
-;; (stop-after-first-error #t)
-; (run-all)
+(stop-after-first-error #t)
+(run-all)

@@ -6,6 +6,12 @@
 (define test-list
   '(
 
+    ;; list-test
+    (empty-list "list()" ())
+    (list-0 "let x = 4
+              in list(x, -(x,1), -(x,3))" (4 3 1))
+    (list-1 "let p = proc(x) -(x, 1) in list((p 1), (p 2), (p 3))" (0 1 2))
+
     ;; simple arithmetic
     (positive-const "11" 11)
     (negative-const "-33" -33)
