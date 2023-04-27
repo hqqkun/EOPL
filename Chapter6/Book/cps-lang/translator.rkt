@@ -4,7 +4,6 @@
 (require "cps-in-lang.rkt")
 (require "cps-out-lang.rkt")
 
-
 (provide cps-of-program)
 
 
@@ -19,8 +18,7 @@
 )
 
 
-; cont is just a cps-var-exp
-; cps-of-exp
+; cps-of-exp : Exp * SimpleExp -> TfExp
 (define cps-of-exp
   (lambda (exp cont)
     (cases expression exp
@@ -97,11 +95,13 @@
 
 (define cps-of-let-exp
   (lambda (var exp1 body k-exp)
-    (cps-of-exps (list exp1)
-      (lambda (new-rands)
-        (cps-let-exp var
-          (car new-rands)
-          (cps-of-exp body k-exp)))))
+    ; with proc call
+    (cps-of-exp
+      (call-exp
+        (proc-exp 
+          (list var)
+          body)
+        (list exp1)) k-exp))
 )
 
 (define cps-of-zero?-exp
