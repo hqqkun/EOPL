@@ -56,7 +56,7 @@
   (lambda (exps builder)
     (let cps-of-rest ([exps exps])
       (let
-        ([pos (list-index-r
+        ([pos (list-index
                 (lambda (exp) (not (inp-exp-simple? exp))) exps)])
         (if (not pos)
           (builder (map cps-of-simple-exp exps))
@@ -70,11 +70,21 @@
 
 (define cps-of-call-exp
   (lambda (rator rands k-exp)
-    (cps-of-exps (cons rator rands)
-      (lambda (new-rands)
-        (cps-call-exp 
-          (car new-rands)
-          (append (cdr new-rands) (list k-exp))))))
+    (let ([length (length rands)])
+      (cps-of-exps (append rands (list rator))
+        (lambda (new-rands)
+          (cps-call-exp 
+            (list-ref new-rands length)
+            (append (remove-last new-rands) (list k-exp))))))
+    )
+)
+
+(define remove-last
+  (lambda (lst)
+    (cond
+      ((null? lst) (eopl:error "error!"))
+      ((null? (cdr lst)) '())
+      (else (cons (car lst) (remove-last (cdr lst))))))
 )
 
 (define cps-of-sum-exp
@@ -182,20 +192,6 @@
       (L lst 0)))
 )
 
-(define list-index-r
-  (lambda (pred lst)
-    (letrec
-      ([L (lambda (lst index cont)
-            (if (null? lst)
-              (cont #f)
-              (L (cdr lst) (+ 1 index)
-                (lambda (val)
-                  (cond
-                    (val (cont val))
-                    ((pred (car lst)) (cont index))
-                    (else (cont #f)))))))])
-      (L lst 0 (lambda (val) (if val val #f)))))
-)
 
 (define list-set
   (lambda (lst n val)
