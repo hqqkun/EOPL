@@ -78,7 +78,7 @@
       (cps-sum-exp (exps)
         (let
           ( [nums (map (lambda (exp) (expval->num (value-of-simple-exp exp env))) exps)])
-          (num-val (reduce + nums))))
+          (num-val (add-reduce nums))))
       ))
 )
 
@@ -93,11 +93,12 @@
         (value-of/k))))
 )
 
-(define reduce
-  (lambda (func list)
-    (if (null? (cdr list))
-        (car list)
-        (func (car list) (reduce func (cdr list)))))
+(define add-reduce
+  (lambda (nums)
+    (let loop ([nums nums] [sum 0])
+      (if (null? nums)
+        sum
+        (loop (cdr nums) (+ sum (car nums))))))
 )
 
 
@@ -110,13 +111,3 @@
             "End of computation.~%")
           val))))
 )
-
-
-(define str "let p = proc(x y) +(x, y, 15) in (p 1 2)")
-(define run
-  (lambda (str)
-    (display 
-      (value-of-program (cps-out-scan&parse str))))
-)
-
-(run str)
