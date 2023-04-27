@@ -87,14 +87,6 @@
         (loop (cdr nums) (+ sum (car nums))))))
 )
 
-(define reduce
-  (lambda (func list)
-    (if (null? (cdr list))
-        (car list)
-        (func (car list) (reduce func (cdr list)))))
-)
-
-
 (define apply-cont
   (lambda (cont val)
     (cases continuation cont

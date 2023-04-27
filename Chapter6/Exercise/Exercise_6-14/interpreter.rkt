@@ -64,7 +64,7 @@
       (cps-sum-exp (exps)
         (let
           ( [nums (map (lambda (exp) (expval->num (value-of-simple-exp exp env))) exps)])
-          (num-val (reduce + nums))))
+          (num-val (add-reduce nums))))
       ))
 )
 
@@ -79,13 +79,13 @@
           cont))))
 )
 
-(define reduce
-  (lambda (func list)
-    (if (null? (cdr list))
-        (car list)
-        (func (car list) (reduce func (cdr list)))))
+(define add-reduce
+  (lambda (nums)
+    (let loop ([nums nums] [sum 0])
+      (if (null? nums)
+        sum
+        (loop (cdr nums) (+ sum (car nums))))))
 )
-
 
 (define apply-cont
   (lambda (cont val)
