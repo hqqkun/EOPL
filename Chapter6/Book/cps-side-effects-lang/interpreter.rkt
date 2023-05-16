@@ -1,7 +1,7 @@
 #lang eopl
 
 (require "drscheme-init.rkt")
-
+(require "store.rkt")
 (require "cps-out-lang.rkt")
 (require "data-structures.rkt")       ; this includes environments
 
@@ -10,6 +10,7 @@
 
 (define value-of-program
   (lambda (pgm)
+    (initialize-store!)
     (cases cps-out-program pgm
       (cps-a-program (exp1)
         (value-of/k exp1 (init-env) (end-cont)))))
@@ -43,6 +44,32 @@
         (begin
           (eopl:printf "~s~%" (value-of-simple-exp simple env))
           (value-of/k body env cont)))
+
+      (cps-newrefk-exp (simple1 simple2)
+        (let
+          ( [val1 (value-of-simple-exp simple1 env)]
+            [val2 (value-of-simple-exp simple2 env)])
+          (let ([newval (ref-val (newref val1))])
+            (apply-procedure/k
+              (expval->proc val2)
+              (list newval) cont))))
+      
+      (cps-derefk-exp (simple1 simple2)
+        (let
+          ( [val1 (value-of-simple-exp simple1 env)]
+            [val2 (value-of-simple-exp simple2 env)])
+          (let ([val (deref (expval->ref val1))])
+            (apply-procedure/k
+              (expval->proc val2)
+              (list val) cont))))
+
+      (cps-setrefk-exp (simple1 simple2 body)
+        (let
+          ( [val1 (value-of-simple-exp simple1 env)]
+            [val2 (value-of-simple-exp simple2 env)])
+          (begin
+            (setref! (expval->ref val1) val2)
+            (value-of/k body env cont))))
     ))
 )
 

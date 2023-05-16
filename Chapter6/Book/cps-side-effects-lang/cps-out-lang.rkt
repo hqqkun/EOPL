@@ -81,7 +81,7 @@
     (tfexp
      ("setrefk"
       "(" simple-expression "," simple-expression ")" ";"
-      tfexp )
+      tfexp)
      cps-setrefk-exp)
 
     ))

@@ -1,5 +1,6 @@
 #lang eopl
 (require "cps-out-lang.rkt")          ; for tfexp?
+(require "store.rkt")
 (provide (all-defined-out))               ; too many things to list
 
 ;;;;;;;;;;;;;;;; expressed values ;;;;;;;;;;;;;;;;
@@ -12,9 +13,19 @@
   (bool-val
    (boolean boolean?))
   (proc-val
-   (proc proc?)))
+   (proc proc?))
+  (ref-val
+    (ref reference?))
+)
 
 ;;; extractors:
+
+(define expval->ref
+  (lambda (v)
+    (cases expval v
+      (ref-val (ref) ref)
+      (else (expval-extractor-error 'ref v))))
+)
 
 (define expval->num
   (lambda (v)
