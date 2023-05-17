@@ -8,6 +8,11 @@
   
   (define test-list
     '(
+           ;; thanks to EFanZh for finding this
+    (let-scope-1 "
+      let x = 6 in -(let x = 11 in x, x)"
+      5)
+      (1)
       ;; simple arithmetic
       (positive-const "11" 11)
       (negative-const "-33" -33)
