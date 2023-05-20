@@ -23,6 +23,20 @@
       (var-exp (var)
         (apply-tenv tenv var))
 
+      (assign-exp (var exp1)
+        (let
+          ( [var-ty (apply-tenv tenv var)]
+            [exp1-ty (type-of exp1 tenv)])
+          (check-equal-type! var-ty exp1-ty exp1)
+          (int-type)))
+
+      (begin-exp (exp1 exps)
+        (let loop ( [e1 exp1] [es exps])
+          (let ([e1-ty (type-of e1 tenv)])
+            (if (null? es)
+              e1-ty
+              (loop (car es) (cdr es))))))
+
       (diff-exp (exp1 exp2)
         (let
           ( [ty1 (type-of exp1 tenv)]
@@ -104,6 +118,19 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Utils
+
+(define type-to-external-form
+  (lambda (ty)
+    (cases type ty
+      (int-type ()  'int)
+      (bool-type () 'bool)
+      (proc-type (arg-type result-type)
+        (list
+          (type-to-external-form arg-type)
+          '->
+          (type-to-external-form result-type)))
+    ))
+)
 
 (define report-unequal-types
   (lambda (ty1 ty2 exp)

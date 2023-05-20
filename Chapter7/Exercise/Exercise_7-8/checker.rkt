@@ -6,6 +6,13 @@
 (provide type-of-program)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define check-equal-type!
+  (lambda (ty1 ty2 exp)
+    (when (not (equal? ty1 ty2))
+      (report-unequal-types ty1 ty2 exp)))
+)
+
+
 (define type-of-program
   (lambda (pgm)
     (cases program pgm
@@ -17,6 +24,22 @@
 (define type-of
   (lambda (exp tenv)
     (cases expression exp
+
+      (pair-exp (first second)
+        (let
+          ( [f-ty (type-of first tenv)]
+            [s-ty (type-of second tenv)])
+          (pair-type f-ty s-ty)))
+      
+      (unpair-exp (f-var s-var epair body)
+        (let ( [epair-ty (type-of epair tenv)])
+          (cases type epair-ty
+            (pair-type (f-ty s-ty)
+              (type-of body
+                (extend-tenv f-var f-ty
+                  (extend-tenv s-var s-ty tenv))))
+            (else (report-not-a-pair-type epair-ty epair)))))
+      
       (const-exp (num)
         (int-type))
       
@@ -46,52 +69,36 @@
           (check-equal-type! ty2 ty3 exp)
           ty2))
       
-      (let-exp (vars exps body)
+      (let-exp (var exp1 body)
         (let
-          ( [tys (map (lambda (exp) (type-of exp tenv)) exps)])
-          (type-of body (extend-tenv* vars tys tenv))))
+          ( [exp1-ty (type-of exp1 tenv)])
+          (type-of body (extend-tenv var exp1-ty tenv))))
 
-      (proc-exp (b-vars b-var-tys body)
+      (proc-exp (b-var b-var-ty body)
         (let
           ( [body-ty 
-              (type-of body (extend-tenv* b-vars b-var-tys tenv))])
-          (proc-type b-var-tys body-ty)))
+              (type-of body (extend-tenv b-var b-var-ty tenv))])
+          (proc-type b-var-ty body-ty)))
 
-      (call-exp (rator rands)
+      (call-exp (rator rand)
         (let
           ( [rator-ty (type-of rator tenv)]
-            [rands-tys (map (lambda (exp) (type-of exp tenv)) rands)])
+            [rand-ty (type-of rand tenv)])
           (cases type rator-ty
-            (proc-type (arg-types result-type)
-              (check-equal-types! arg-types rands-tys rands)
+            (proc-type (arg-type result-type)
+              (check-equal-type! arg-type rand-ty rand)
               result-type)
             (else (report-rator-not-a-proc-type rator-ty rator)))))
           
-      (letrec-exp (ty1s p-names b-varss ty2ss p-bodys letrec-body)
-        (check-proc-args! ty1s p-names b-varss ty2ss p-bodys tenv)
+      (letrec-exp (ty1 p-name b-var ty2 p-body letrec-body)
         (let*
-          ( [proc-types (map proc-type ty2ss ty1s)]
-            [new-tenv (extend-tenv* p-names proc-types tenv)])
-          (type-of letrec-body new-tenv)))))
-)
-
-
-(define check-proc-args!
-  (lambda (ty1s p-names b-varss ty2ss p-bodys saved-tenv)
-    (let loop 
-      ( [ty1s ty1s] [p-names p-names] [b-varss b-varss]
-        [ty2ss ty2ss] [p-bodys p-bodys])
-      (if (null? ty1s)
-        #t
-        (begin
-          (let 
-            ([new-tenv 
-              (extend-tenv* 
-                (cons (car p-names) (car b-varss)) 
-                (cons (proc-type (car ty2ss) (car ty1s)) (car ty2ss)) saved-tenv)]) 
-            (check-equal-type! (car ty1s) (type-of (car p-bodys) new-tenv) (car p-bodys)))
-          (loop (cdr ty1s) (cdr p-names) (cdr b-varss) (cdr ty2ss) (cdr p-bodys))
-        ))))
+          ( [tenv-letrec-body 
+              (extend-tenv p-name (proc-type ty2 ty1) tenv)]
+            [p-body-ty 
+              (type-of p-body (extend-tenv b-var ty2 tenv-letrec-body))])
+          (check-equal-type! p-body-ty ty1 p-body)
+          (type-of letrec-body tenv-letrec-body)))
+      ))
 )
 
 (define report-rator-not-a-proc-type
@@ -102,6 +109,13 @@
       (type-to-external-form rator-type)))
 )
 
+(define report-not-a-pair-type
+  (lambda (p-ty epair)
+    (eopl:error 'type-of-expression
+      "epair not a pair type:~%~s~%had type : ~s"   
+      epair 
+      (type-to-external-form p-ty)))
+)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Utils
 
@@ -114,21 +128,7 @@
        exp))
 )
 
-(define check-equal-type!
-  (lambda (ty1 ty2 exp)
-    (when (not (equal? ty1 ty2))
-      (report-unequal-types ty1 ty2 exp)))
-)
 
-(define check-equal-types!
-  (lambda (ty1s ty2s exps)
-    (let loop ( [ty1s ty1s] [ty2s ty2s] [exps exps])
-      (if (null? ty1s)
-        #t
-      (begin
-        (check-equal-type! (car ty1s) (car ty2s) (car exps))
-        (loop (cdr ty1s) (cdr ty2s) (cdr exps))))))
-)
 
 (define-datatype type-environment type-environment?
    (empty-tenv-record)
@@ -148,16 +148,6 @@
           val1
           (apply-tenv saved-tenv sym)))
     ))
-)
-
-
-(define extend-tenv*
-  (lambda (vars tys saved-tenv)
-    (let loop ( [vars vars] [tys tys] [tenv saved-tenv])
-      (if (null? vars)
-        tenv
-        (loop (cdr vars) (cdr tys)
-          (extend-tenv (car vars) (car tys) tenv)))))
 )
 
 
