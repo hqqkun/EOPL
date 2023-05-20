@@ -96,19 +96,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Utils
 
-(define type-to-external-form
-  (lambda (ty)
-    (cases type ty
-      (int-type ()  'int)
-      (bool-type () 'bool)
-      (proc-type (arg-type result-type)
-        (list
-          (type-to-external-form arg-type)
-          '->
-          (type-to-external-form result-type)))
-    ))
-)
-
 (define report-unequal-types
   (lambda (ty1 ty2 exp)
     (eopl:error 'check-equal-type!
@@ -117,8 +104,6 @@
        (type-to-external-form ty2)
        exp))
 )
-
-
 
 (define-datatype type-environment type-environment?
    (empty-tenv-record)
