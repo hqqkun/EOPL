@@ -251,46 +251,6 @@ in letrec
                        int)
 
 
-    (begin-test-1
-      "begin 1; 2; 3 end"
-      int)
 
-    (gensym-test-1
-     "let g = let counter = newref(0) 
-         in proc (dummy : int) let d = setref(counter, -(deref(counter),-1))
-                    in deref(counter)
-in -((g 11),(g 22))"
-     int)
-
-    (simple-store-test-1 "let x = newref(17) in deref(x)" int)
-
-    (assignment-test-1 "let x = newref(17) 
-                          in begin setref(x,27); deref(x) end"
-                       int)
-
-    (gensym-test-2
-     "let g = let counter = newref(0) 
-         in proc (dummy : int) begin
-                           setref(counter, -(deref(counter),-1));
-                           deref(counter)
-                         end
- in -((g 11),(g 22))"
-     int)
-
-    (show-allocation-1 "
-let x = newref(22)
-in let f = proc (z : int) let zz = newref(-(z,deref(x))) in deref(zz)
-   in -((f 66), (f 55))"
-                       int)
-
-    (chains-1 "
-let x = newref(newref(0))
-in begin 
-    setref(deref(x), 11);
-    deref(deref(x))
-   end"
-      int)
-
-    (t0 "let x = newref(1) in begin setref(x, 12) end" void)
     )
   )

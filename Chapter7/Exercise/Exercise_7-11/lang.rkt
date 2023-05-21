@@ -20,26 +20,7 @@
 
 (define the-grammar
   '((program (expression) a-program)
-    
-    ; explicit-refs
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (expression
-     ("begin" expression (arbno ";" expression) "end")
-     begin-exp)
 
-    (expression
-     ("newref" "(" expression ")")
-     newref-exp)
-
-    (expression
-     ("deref" "(" expression ")")
-     deref-exp)
-
-    (expression
-     ("setref" "(" expression "," expression ")")
-     setref-exp)
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")
@@ -85,12 +66,6 @@
      ("(" type "->" type ")")
      proc-type)
 
-    (type
-      ("refto" type)
-      ref-type)
-    (type
-      ("void")
-      void-type)
     ))
 
 ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
@@ -113,18 +88,10 @@
 (define type-to-external-form
   (lambda (ty)
     (cases type ty
-      (void-type () 'void)
       (int-type () 'int)
       (bool-type () 'bool)
       (proc-type (arg-type result-type)
-        (list
-          (type-to-external-form arg-type)
-          '->
-          (type-to-external-form result-type)))
-      (ref-type (ty1)
-        (list
-          'refto
-          (type-to-external-form ty1)))
-    ))
-                  
-)
+                 (list
+                  (type-to-external-form arg-type)
+                  '->
+                  (type-to-external-form result-type))))))

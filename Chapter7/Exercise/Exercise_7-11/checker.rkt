@@ -24,28 +24,6 @@
 (define type-of
   (lambda (exp tenv)
     (cases expression exp
-      ;for refs
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      (begin-exp (exp1 exps)
-        (let loop ( [e1 exp1] [es exps])
-          (let ([e1-ty (type-of e1 tenv)])
-            (if (null? es)
-              e1-ty
-              (loop (car es) (cdr es))))))
-      (newref-exp (exp1)
-        (ref-type (type-of exp1 tenv)))
-      (deref-exp (exp1)
-        (let ([ty (type-of exp1 tenv)])
-          (cases type ty
-            (ref-type (ty1) ty1)
-            (else (report-rator-not-a-ref-type ty exp1)))))
-      (setref-exp (exp1 exp2)
-        (let
-          ( [ty1 (type-of exp1 tenv)]
-            [ty2 (type-of exp2 tenv)])
-          (check-equal-type! ty1 (ref-type ty2) exp1)
-          (void-type)))
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (const-exp (num)
         (int-type))
       
@@ -111,14 +89,6 @@
   (lambda (rator-type rator)
     (eopl:error 'type-of-expression
       "Rator not a proc type:~%~s~%had rator type ~s"   
-      rator 
-      (type-to-external-form rator-type)))
-)
-
-(define report-rator-not-a-ref-type
-  (lambda (rator-type rator)
-    (eopl:error 'type-of-expression
-      "Rator not a ref type:~%~s~%had rator type ~s"   
       rator 
       (type-to-external-form rator-type)))
 )
