@@ -73,12 +73,12 @@
       right-exp)
 
     (expression
-        ("setleft" expression "=" expression)
-        setleft-exp)
+      ("setleft" expression "=" expression)
+      setleft-exp)
 
     (expression
-        ("setright" expression "=" expression)
-        setright-exp)
+      ("setright" expression "=" expression)
+      setright-exp)
     )
 )
 
