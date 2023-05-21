@@ -250,7 +250,79 @@ in letrec
    in (fact 4)"
                        int)
 
+  (begin-test-1
+        "begin 1; 2; 3 end"
+        int)
 
+      ;; extremely primitive testing for mutable variables
+
+      (assignment-test-1 "let x = 17
+                          in begin set x = 27; x end"
+        int)
+
+
+      (gensym-test
+"let g = let count = 0 in proc(d : int)
+                        begin
+                        set count = -(count,-1);
+                        count
+                        end
+in -((g 11), (g 22))"
+int)
+      
+     ;; even more primitive testing for mutable pairs
+
+      (simple-mutpair-left-1 "let p = newpair(22,33) in left(p)" int)
+      (simple-mutpair-right-1 "let p = newpair(22,33) in right(p)" int)
+
+      (simple-mutpair-setleft-1 "
+let p = newpair(22,33) in begin setleft p = 77; left(p) end" int)
+
+      (simple-mutpair-setleft-2 "
+let p = newpair(22,33) in begin setleft p = 77; right(p) end" int)
+
+      (simple-mutpair-setleft-3 "
+let p = newpair(22,33) in setleft p = 77" void)
+
+      
+      (simple-mutpair-setright-1 "
+let p = newpair(22,33) in begin setright p = 77; right(p) end" int)
+
+      (simple-mutpair-setright-2 "
+let p = newpair(22,33) in begin setright p = 77; left(p) end" int)
+
+
+
+      (gensym-using-mutable-pair-left
+"let g = let count = newpair(0,0) 
+         in proc (dummy : int) 
+              begin
+               setleft count = -(left(count), -1);
+               left(count)
+              end
+in -((g 22), (g 22))"
+int)
+
+      (gensym-using-mutable-pair-right
+"let g = let count = newpair(0,0) 
+         in proc (dummy : int) 
+              begin
+               setright count = -(right(count), -1);
+               right(count)
+              end
+in -((g 22), (g 22))"
+int)
+
+      (example-for-mutable-pairs-section "
+let glo = newpair(11,22) 
+in let f = proc (loc : pairof int * int) 
+            begin  % this is a comment
+             setright loc = left(loc);
+             setleft  glo = 99;
+             -(left(loc),right(loc))
+            end
+in (f glo)"
+        int)
 
     )
   )

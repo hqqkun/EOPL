@@ -24,6 +24,63 @@
 (define type-of
   (lambda (exp tenv)
     (cases expression exp
+      ;; mutable-pairs
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      (begin-exp (exp1 exps)
+        (let loop ( [e1 exp1] [es exps])
+          (let ([e1-ty (type-of e1 tenv)])
+            (if (null? es)
+              e1-ty
+              (loop (car es) (cdr es))))))
+      
+      (assign-exp (var exp1)
+        (let
+          ( [var-ty (apply-tenv tenv var)]
+            [exp1-ty (type-of exp1 tenv)])
+          (check-equal-type! var-ty exp1-ty exp1)
+          (void-type)))
+      (newpair-exp (exp1 exp2)
+        (let
+          ( [ty1 (type-of exp1 tenv)]
+            [ty2 (type-of exp2 tenv)])
+          (pair-type ty1 ty2)))
+      
+      (left-exp (exp1)
+        (let ([ty1 (type-of exp1 tenv)])
+          (cases type ty1
+            (pair-type (first _)
+              first)
+            (else (report-rator-not-a-pair-type ty1 exp1)))))
+      
+      (right-exp (exp1)
+        (let ([ty1 (type-of exp1 tenv)])
+          (cases type ty1
+            (pair-type (_ second)
+              second)
+            (else (report-rator-not-a-pair-type ty1 exp1)))))
+      
+      (setleft-exp (exp1 exp2)
+        (let 
+          ( [ty1 (type-of exp1 tenv)]
+            [ty2 (type-of exp2 tenv)])
+          (cases type ty1
+            (pair-type (left _)
+              (check-equal-type! left ty2 exp1)
+              (void-type))
+            (else (report-rator-not-a-pair-type ty1 exp1)))))
+
+      (setright-exp (exp1 exp2)
+        (let 
+          ( [ty1 (type-of exp1 tenv)]
+            [ty2 (type-of exp2 tenv)])
+          (cases type ty1
+            (pair-type (_ right)
+              (check-equal-type! right ty2 exp1)
+              (void-type))
+            (else (report-rator-not-a-pair-type ty1 exp1)))))
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      
+
       (const-exp (num)
         (int-type))
       
@@ -93,6 +150,13 @@
       (type-to-external-form rator-type)))
 )
 
+(define report-rator-not-a-pair-type
+  (lambda (rator-type rator)
+    (eopl:error 'type-of-expression
+      "Rator not a pair type:~%~s~%had rator type ~s"   
+      rator 
+      (type-to-external-form rator-type)))
+)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Utils
 

@@ -21,6 +21,36 @@
 (define the-grammar
   '((program (expression) a-program)
 
+    ;; mutable-pairs
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (expression
+     ("begin" expression (arbno ";" expression) "end")
+     begin-exp)
+
+    (expression
+     ("set" identifier "=" expression)
+     assign-exp)
+    
+    (expression
+      ("newpair" "(" expression "," expression ")")
+      newpair-exp)
+
+    (expression
+      ("left" "(" expression ")")
+      left-exp)
+
+    (expression
+      ("right" "(" expression ")")
+      right-exp)
+
+    (expression
+      ("setleft" expression "=" expression)
+      setleft-exp)
+
+    (expression
+      ("setright" expression "=" expression)
+      setright-exp)
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")
@@ -66,6 +96,13 @@
      ("(" type "->" type ")")
      proc-type)
 
+    (type
+      ("pairof" type "*" type)
+      pair-type)
+    
+    (type
+      ("void")
+      void-type)
     ))
 
 ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
@@ -90,8 +127,16 @@
     (cases type ty
       (int-type () 'int)
       (bool-type () 'bool)
+      (void-type () 'void)
       (proc-type (arg-type result-type)
-                 (list
-                  (type-to-external-form arg-type)
-                  '->
-                  (type-to-external-form result-type))))))
+        (list
+        (type-to-external-form arg-type)
+        '->
+        (type-to-external-form result-type)))
+      (pair-type (first second)
+        (list
+          'pairof
+          (type-to-external-form first)
+          (type-to-external-form second)))
+    ))
+)
