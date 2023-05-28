@@ -61,12 +61,12 @@
     (let-to-proc-1 "(proc(f : (int -> int))(f 30)  proc(x : int)-(x,1))" 29)
 
 
-    (nested-procs "((proc (x : int) proc (y : int) -(x,y)  5) 6)" -1)
+    (nested-procs "((proc(x : int) proc (y : int) -(x,y)  5) 6)" -1)
     (nested-procs2 "let f = proc(x : int) proc (y : int) -(x,y) in ((f -(10,5)) 6)"
                    -1)
 
     (y-combinator-1 "
-let fix =  proc (f : bool)
+let fix =  proc(f : bool)
             let d = proc (x : bool) proc (z : bool) ((f (x x)) z)
             in proc (n : bool) ((f (d d)) n)
 in let
@@ -100,12 +100,7 @@ in let times4 = (fix t4m)
 (define tests-for-check
   '(
     ;; tests from run-tests:
-
-    (t0 "let f = proc(x:int, y:int) -(x,y) in (f 1 2)" int)
-    (t1 "proc(x:int, y:int) -(x,y)" (int * int -> int))
-    (t2 "let x = 1 y =2 in -(x, y)" int)
-    (t3 "let x = 1 y = 2 in (x y)" error)
-    
+    (t0 "proc(x : ?, y : ?) -(x, y)" (int * int -> int))
     ;; simple arithmetic
     (positive-const "11" int)
     (negative-const "-33" int)
@@ -255,7 +250,64 @@ in letrec
    in (fact 4)"
                        int)
 
+    (pgm7b "
+letrec 
+  ? fact (x : ?) = if zero?(x) then 1 else -(x, (fact -(x,1)))
+in fact"
+           (int -> int))
 
 
-    )
-  )
+    (pgm8b "
+    letrec ? odd(x : ?)  = if zero?(x) then 0 else (even -(x,1))
+            ? even(x : ?) = if zero?(x) then 1 else (odd  -(x,1))
+    in odd" (int -> int))
+
+
+      (pgm8ab "
+      letrec ? odd(x : ?)  = if zero?(x) then 0 else (even -(x,1))
+              ? even(bool x) = if zero?(x) then 1 else (odd  -(x,1))
+      in (odd 13)" error)
+
+    ;; circular type
+    (circular-type "
+      let fix =  proc (f : ?)
+                  let d = proc (x : ?) proc (z : ?) (f (x x) z)
+                  in proc (n : ?) (f (d d) n)
+          t4m = proc (f : ?, x : ?) if zero?(x) then 0 else +(4,(f -(x,1)))
+      in let times4 = (fix t4m)
+         in (times4 3)"
+                   error)
+
+    (pgm11b
+      "letrec ? even (odd : ?, x : ?) = if zero?(x) then 1 else (odd -(x,1))
+        in letrec  ? odd(x : ?) = if zero?(x) then 0 else (even odd -(x,1))
+        in (odd 13)"
+      int)
+
+    (pgm11b-curried
+     "letrec ? even (odd : ?) = proc (x : ?) if zero?(x) then 1 else (odd -(x,1))
+         in letrec  ? odd(x : ?) = if zero?(x) then 0 else ((even odd) -(x,1))
+         in (odd 13)"
+     int)
+
+    (dont-infer-circular-type
+     "letrec ? f (x : ?) = (f f) in 33"
+     error)
+
+    (polymorphic-type-1
+     "letrec ? f (x : ?) = (f x) in f"
+     (tvar01 -> tvar02))
+
+    ;; this test should fail, because the type given is insufficiently
+    ;; polymorphic.  So we use it for testing the test harness, but not for
+    ;; testing the checker.
+
+    ;;       (polymorphic-type-1a
+    ;;         "letrec ? f (x : ?) = (f x) in f"
+    ;;         (tvar01 -> tvar01))
+
+    (polymorphic-type-2
+     "letrec ? f (x : ?) = (f x) in proc (n : ?) (f -(n,1))"
+     (int -> tvar01))
+
+    ))
