@@ -5,9 +5,25 @@
 (require "lang.rkt")
 (require "data-structures.rkt")
 (require "environments.rkt")
+(require racket/set)
 
 (provide value-of value-of-program)
 
+; Exercise 8-2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define make-expected-iface-decls-set
+  (lambda (decls)
+    (let 
+      ( [name-set (mutable-set)])
+      (let loop ([decls decls])
+        (if (null? decls)
+          name-set
+          (begin
+            (set-add! name-set 
+              (decl->name (car decls)))
+            (loop (cdr decls)))))))
+)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define value-of-program
   (lambda (pgm)
     (cases program pgm
@@ -25,39 +41,44 @@
       env
       (cases module-definition (car module-defs)
         (a-module-definition (m-name iface m-body)
-          (add-module-defns-to-env 
-            (cdr module-defs)
-            (extend-env-with-module
-              m-name
-              (value-of-module-body
-                m-body env)
-              env)))
-        ))
-    )
+          (cases interface iface
+            (simple-iface (decls)
+              (let
+                ( [name-set (make-expected-iface-decls-set decls)])
+                (add-module-defns-to-env 
+                  (cdr module-defs)
+                  (extend-env-with-module
+                    m-name
+                    (value-of-module-body
+                      m-body env name-set)
+                    env)))))))))
 )
 
 
 ;; value-of-module-body : ModuleBody * Env -> TypedModule
 (define value-of-module-body
-  (lambda (m-body env)
+  (lambda (m-body env name-set)
     (cases module-body m-body
       (defns-module-body (defns)
         (simple-module
-          (defns-to-env defns env)))))
+          (defns-to-env defns env name-set)))))
 )
 
 
 (define defns-to-env
-  (lambda (defns env)
-    (if (null? defns)
-      (empty-env)
-      (cases definition (car defns)
-        (val-defn (var exp)
-          (let* 
-            ( [val (value-of exp env)]
-              [new-env (extend-env var val env)])
-            (extend-env var val
-              (defns-to-env (cdr defns) new-env)))))))
+  (lambda (defns env name-set)
+    (let loop ( [defns defns] [env env])
+      (if (null? defns)
+        (empty-env)
+        (cases definition (car defns)
+          (val-defn (var exp)
+            (let* 
+              ( [val (value-of exp env)]
+                [new-env (extend-env var val env)])
+              (if (set-member? name-set var)
+                (extend-env var val
+                  (loop (cdr defns) new-env))
+                (loop (cdr defns) new-env))))))))
 )
 
 (define value-of
@@ -66,12 +87,11 @@
       (const-exp (num)
         (num-val num))
         
-      (var-exp (var sub1)
-        (cases sub-var-exp sub1
-          (simple-var-exp () 
-            (apply-env env var))
-          (qualified-var-exp (var-name)
-            (lookup-qualified-var-in-env var var-name env))))
+      (var-exp (var)
+        (apply-env env var))
+      
+      (qualified-var-exp (m-name var-name)
+        (lookup-qualified-var-in-env m-name var-name env))
 
       (diff-exp (exp1 exp2)
         (let 

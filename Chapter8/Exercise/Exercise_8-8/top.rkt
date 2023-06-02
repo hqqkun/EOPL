@@ -69,7 +69,7 @@
               (run (cadr test))))
         (else (eopl:error 'run-one "no such test: ~s" test-name))))))
 
-(run-all)
+; (run-all)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -100,7 +100,7 @@
               (check (cadr test))))
         (else (eopl:error 'check-one "no such test: ~s" test-name))))))
 
-; (check-all)
+(check-all)
 
 ;;;;;;;;;;;;;;;; parsing ;;;;;;;;;;;;;;;;
 

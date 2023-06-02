@@ -173,7 +173,7 @@ interface
 body 
 [u = 3]
 
-m.u"
+from m take u"
       int 3)
 
       (modules-take-one-value-no-import
@@ -182,7 +182,7 @@ m.u"
           [u : int] 
         body 
           [u = 3]
-        m.u"
+        from m take u"
       int 3)
 
       (modules-take-from-parameterized-module "
@@ -192,7 +192,7 @@ interface
 body 
 module-proc (m1 : []) [u = 3]
 
-m.u
+from m take u
 "
       error error)
 
@@ -202,7 +202,7 @@ interface
 [u : int]
 body 
 [u = 3 v = 4]
-m.u"
+from m take u"
       int 3)
 
 
@@ -212,7 +212,7 @@ m.u"
 
       (modules-take-one-value-but-interface-bad "
         module m interface []  body [u = 3]
-        m.u"
+        from m take u"
 ; this version for permissive interp
       error 3
 ; this version for strict interp
@@ -221,7 +221,7 @@ m.u"
 
       (modules-take-bad-value
       "module m interface []  body [u = 3]
-        m.x"
+        from m take x"
       error error)       
 
       (modules-two-vals "
@@ -233,24 +233,24 @@ body
 [u = 44
   v = 33]
 
--(m.u, m.v)"
+-(from m take u, from m take v)"
       int 11)
 
 
       (modules-two-vals-bad-interface-1
       "module m interface [u : int v : bool]  
                 body [u = 44 v = 33]
-        -(m.u, m.v)"
+        -(from m take u, from m take v)"
       error 11)
 
       (modules-extra-vals-are-ok-1 "
         module m interface [x : int] body [x = 3 y = 4]
-        m.x"
+        from m take x"
         int 3)
 
       (module-extra-vals-are-ok-2 "
         module m interface [y : int] body [x = 3 y = 4]
-        m.y"
+        from m take y"
         int)
 
       (modules-two-vals-bad-interface-14
@@ -259,27 +259,27 @@ body
             u : bool]
         body 
           [v = zero?(0) u = 33]
-        -(m.u, m.v)"
+        -(from m take u, from m take v)"
       error)
 
 
       (modules-check-let*-1
       "module m interface      [u : int v : int]
                 body [u = 44  v = -(u,11)]
-        -(m.u, m.v)"
+        -(from m take u, from m take v)"
       int 11)
 
     (modules-check-let*-2.0
       "module m1 interface [u : int] body [u = 44]
         module m2 interface [v : int] 
         body 
-          [v = -(m1.u,11)]
-        -(m1.u, m2.v)"
+          [v = -(from m1 take u,11)]
+        -(from m1 take u, from m2 take v)"
       int 11)
 
     (modules-check-let*-2.05
       "module m1 interface [u : int] body [u = 44]
-        module m2 interface [v : int] body [v = -(m1.u,11)]
+        module m2 interface [v : int] body [v = -(from m1 take u,11)]
         33"
       int 33)                       ; doesn't actually import anything
 
@@ -287,17 +287,17 @@ body
       "module m1 interface [u : int] body [u = 44]
         module m2   
         interface [v : int] 
-        body [v = -(m1.u,11)]
-        -(m1.u, m2.v)"
+        body [v = -(from m1 take u,11)]
+        -(from m1 take u, from m2 take v)"
       int 11)
 
     (modules-check-let*-2.2
       "module m2
         interface [v : int] 
         body 
-          [v = -(m1.u,11)]
+          [v = -(from m1 take u,11)]
         module m1 interface [u : int] body [u = 44]
-        -(m1.u, m2.v)"
+        -(from m1 take u, from m2 take v)"
       error)
 
 
@@ -310,7 +310,7 @@ body
         body 
           [u = 1
           v = u]
-      m1.v" error)
+      from m1 take v" error)
   ))
 
 (define tests-for-run

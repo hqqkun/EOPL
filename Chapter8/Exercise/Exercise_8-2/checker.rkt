@@ -28,12 +28,11 @@
     (cases expression exp
       (const-exp (num)
         (int-type))
-      (var-exp (var sub1)
-        (cases sub-var-exp sub1
-          (simple-var-exp () 
-            (apply-tenv tenv var))
-          (qualified-var-exp (var-name)
-            (lookup-qualified-var-in-tenv var var-name tenv))))
+      (var-exp (var)
+        (apply-tenv tenv var))
+      
+      (qualified-var-exp (m-name var-name) 
+        (lookup-qualified-var-in-tenv m-name var-name tenv))
 
       (diff-exp (exp1 exp2)
         (let

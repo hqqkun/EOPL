@@ -18,7 +18,7 @@
           b = -(c,a)]
 
         let a = 10
-        in -(-(m1.a, m1.b), 
+        in -(-(from m1 take a, from m1 take b), 
             a)"
       int 24)
 
@@ -53,7 +53,7 @@
           [v = 33 
           u = 44]
 
-        m1.u" 
+        from m1 take u" 
       error)
 
     (example-8.5a "
@@ -67,22 +67,22 @@
         interface
           [v : int] 
         body 
-          [v = -(m1.u,11)]
+          [v = -(from m1 take u,11)]
 
-        -(m1.u, m2.v)"
+        -(from m1 take u, from m2 take v)"
       int)
 
     (example-8.5b "
         module m2 
         interface [v : int] 
         body 
-          [v = -(m1.u,11)]
+          [v = -(from m1 take u,11)]
 
         module m1 
         interface [u : int] 
         body [u = 44]
 
-        -(m1.u, m2.v)"
+        -(from m1 take u, from m2 take v)"
       error)
 
     ))

@@ -66,12 +66,11 @@
       (const-exp (num)
         (num-val num))
         
-      (var-exp (var sub1)
-        (cases sub-var-exp sub1
-          (simple-var-exp () 
-            (apply-env env var))
-          (qualified-var-exp (var-name)
-            (lookup-qualified-var-in-env var var-name env))))
+      (var-exp (var)
+        (apply-env env var))
+      
+      (qualified-var-exp (m-name var-name)
+        (lookup-qualified-var-in-env m-name var-name env))
 
       (diff-exp (exp1 exp2)
         (let 
