@@ -1,7 +1,5 @@
 #lang eopl
 
-;; grammar for the CHECKED language
-
 (require "drscheme-init.rkt")
 
 (provide (all-defined-out))
@@ -20,26 +18,7 @@
 
 (define the-grammar
   '((program (expression) a-program)
-    
-    ; explicit-refs
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    (expression
-     ("begin" expression (arbno ";" expression) "end")
-     begin-exp)
 
-    (expression
-     ("newref" "(" expression ")")
-     newref-exp)
-
-    (expression
-     ("deref" "(" expression ")")
-     deref-exp)
-
-    (expression
-     ("setref" "(" expression "," expression ")")
-     setref-exp)
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    
     (expression (number) const-exp)
     (expression
      ("-" "(" expression "," expression ")")
@@ -60,7 +39,7 @@
      let-exp)
 
     (expression
-     ("proc" "(" identifier ":" type ")" expression)
+     ("proc" "("  identifier ":" optional-type ")" expression)
      proc-exp)
 
     (expression
@@ -69,9 +48,17 @@
 
     (expression
      ("letrec"
-      type identifier "(" identifier ":" type ")" "=" expression
-      "in" expression)
+      optional-type identifier "(" identifier ":" optional-type ")"
+      "=" expression "in" expression)
      letrec-exp)
+
+    (optional-type
+     ("?")
+     no-type)
+
+    (optional-type
+     (type)
+     a-type)
 
     (type
      ("int")
@@ -86,12 +73,9 @@
      proc-type)
 
     (type
-      ("refto" type)
-      ref-type)
-      
-    (type
-      ("void")
-      void-type)
+     ("%tvar-type" number)
+     tvar-type)
+
     ))
 
 ;;;;;;;;;;;;;;;; sllgen boilerplate ;;;;;;;;;;;;;;;;
@@ -107,25 +91,58 @@
 (define just-scan
   (sllgen:make-string-scanner the-lexical-spec the-grammar))
 
-;;;;;;;;;;;;;;;; type-to-external-form ;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;; syntactic tests and observers ;;;;;;;;;;;;;;;;
+
+(define atomic-type?
+  (lambda (ty)
+    (cases type ty
+      (proc-type (ty1 ty2) #f)
+      (tvar-type (sn) #f)
+      (else #t))))
+
+(define proc-type?
+  (lambda (ty)
+    (cases type ty
+      (proc-type (t1 t2) #t)
+      (else #f))))
+
+(define tvar-type?
+  (lambda (ty)
+    (cases type ty
+      (tvar-type (serial-number) #t)
+      (else #f))))
+
+
+(define proc-type->arg-type
+  (lambda (ty)
+    (cases type ty
+      (proc-type (arg-type result-type) arg-type)
+      (else (eopl:error 'proc-type->arg-type
+                        "Not a proc type: ~s" ty)))))
+
+(define proc-type->result-type
+  (lambda (ty)
+    (cases type ty
+      (proc-type (arg-type result-type) result-type)
+      (else (eopl:error 'proc-type->result-types
+                        "Not a proc type: ~s" ty)))))
 
 ;; type-to-external-form : Type -> List
-;; Page: 243
+;; Page: 266
 (define type-to-external-form
   (lambda (ty)
     (cases type ty
-      (void-type () 'void)
       (int-type () 'int)
       (bool-type () 'bool)
       (proc-type (arg-type result-type)
-        (list
-          (type-to-external-form arg-type)
-          '->
-          (type-to-external-form result-type)))
-      (ref-type (ty1)
-        (list
-          'refto
-          (type-to-external-form ty1)))
-    ))
-                  
-)
+                 (list
+                  (type-to-external-form arg-type)
+                  '->
+                  (type-to-external-form result-type)))
+      (tvar-type (serial-number)
+                 (string->symbol
+                  (string-append
+                   "tvar"
+                   (number->string serial-number)))))))
